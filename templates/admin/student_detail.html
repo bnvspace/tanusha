@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block title %}Профиль студента{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <h1>👤 {{ student.full_name }}</h1>
+    <div class="breadcrumb">@{{ student.username }} · {{ student.email }}</div>
+  </div>
+  <a href="{{ url_for('admin_students') }}" class="btn btn-secondary btn-sm">← Назад</a>
+</div>
+
+<div style="display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start">
+  <div class="card">
+    <div style="text-align:center;padding:16px 0">
+      <div style="width:72px;height:72px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:700;margin:0 auto">
+        {{ student.full_name[0] }}
+      </div>
+      <div style="font-weight:700;font-size:1.1rem;margin-top:12px">{{ student.full_name }}</div>
+      <div style="color:var(--muted);font-size:.85rem">@{{ student.username }}</div>
+      <div style="color:var(--muted);font-size:.82rem;margin-top:4px">{{ student.email }}</div>
+      <div style="margin-top:12px">
+        <span class="badge {% if student.is_active %}badge-reviewed{% else %}badge-revision{% endif %}">
+          {{ 'Активен' if student.is_active else 'Заблокирован' }}
+        </span>
+      </div>
+      <div style="font-size:.75rem;color:var(--muted);margin-top:8px">
+        Зарегистрирован {{ student.created_at.strftime('%d.%m.%Y') }}
+      </div>
+    </div>
+    {% if current_user.role == 'admin' %}
+    <form method="POST" action="{{ url_for('admin_toggle_user', uid=student.id) }}" style="margin-top:12px">
+      <button type="submit" class="btn {% if student.is_active %}btn-danger{% else %}btn-success{% endif %}" style="width:100%;justify-content:center" onclick="return confirm('Уверены?')">
+        {{ '🚫 Заблокировать' if student.is_active else '✅ Разблокировать' }}
+      </button>
+    </form>
+    {% endif %}
+  </div>
+
+  <div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-title">📝 Сданные задания</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Задание</th><th>Сдано</th><th>Статус</th><th>Оценка</th><th>Комментарий</th></tr>
+          </thead>
+          <tbody>
+            {% for sub in student.submissions %}
+            <tr>
+              <td style="font-weight:600">{{ sub.assignment.title }}</td>
+              <td style="font-size:.82rem;color:var(--muted)">{{ sub.submitted_at.strftime('%d.%m.%Y %H:%M') }}</td>
+              <td>
+                {% if sub.status == 'pending' %}<span class="badge badge-pending">⏳</span>
+                {% elif sub.status == 'reviewed' %}<span class="badge badge-reviewed">✅</span>
+                {% else %}<span class="badge badge-revision">🔄</span>{% endif %}
+              </td>
+              <td style="font-weight:700;text-align:center">{{ sub.grade if sub.grade is not none else '—' }}</td>
+              <td style="font-size:.82rem;color:var(--muted)">{{ (sub.comment[:60] + '...') if sub.comment and sub.comment|length > 60 else (sub.comment or '—') }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" style="text-align:center;color:var(--muted)">Заданий не сдавал</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🧪 Результаты тестов</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Тест</th><th>Дата</th><th>Результат</th><th>%</th></tr>
+          </thead>
+          <tbody>
+            {% for ts in student.test_submissions if ts.finished_at %}
+            {% set pct = ((ts.score / ts.max_score * 100)|int) if ts.max_score > 0 else 0 %}
+            <tr>
+              <td style="font-weight:600">{{ ts.test.title }}</td>
+              <td style="font-size:.82rem;color:var(--muted)">{{ ts.finished_at.strftime('%d.%m.%Y %H:%M') }}</td>
+              <td style="text-align:center">{{ ts.score }}/{{ ts.max_score }}</td>
+              <td style="font-weight:700;color:{% if pct >= 75 %}var(--success){% elif pct >= 50 %}var(--accent){% else %}var(--danger){% endif %}">{{ pct }}%</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" style="text-align:center;color:var(--muted)">Тестов не проходил</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

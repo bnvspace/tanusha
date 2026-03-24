@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}Студенты{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <h1>👥 Студенты</h1>
+    <div class="breadcrumb">Список зарегистрированных студентов</div>
+  </div>
+  {% if current_user.role == 'admin' %}
+  <a href="{{ url_for('admin_users') }}" class="btn btn-primary btn-sm">+ Добавить</a>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>ФИО</th>
+          <th>Логин</th>
+          <th>Email</th>
+          <th>Регистрация</th>
+          <th>Статус</th>
+          <th>Действия</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in students %}
+        <tr>
+          <td style="color:var(--muted);font-size:.82rem">{{ loop.index }}</td>
+          <td style="font-weight:600">{{ s.full_name }}</td>
+          <td style="color:var(--muted)">@{{ s.username }}</td>
+          <td style="font-size:.85rem">{{ s.email }}</td>
+          <td style="font-size:.82rem;color:var(--muted)">{{ s.created_at.strftime('%d.%m.%Y') }}</td>
+          <td>
+            <span class="badge {% if s.is_active %}badge-reviewed{% else %}badge-revision{% endif %}">
+              {{ 'Активен' if s.is_active else 'Заблокирован' }}
+            </span>
+          </td>
+          <td>
+            <a href="{{ url_for('admin_student_detail', uid=s.id) }}" class="btn btn-secondary btn-sm">Профиль</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px">Студентов нет</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

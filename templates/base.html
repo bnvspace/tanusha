@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Портал{% endblock %} — ИЯ для теплоэнергетиков</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-title">🎓 ИЯ для теплоэнергетиков</div>
+      <div class="logo-sub">Образовательный портал</div>
+    </div>
+    <nav class="sidebar-nav">
+      {% if current_user.is_authenticated %}
+        {% if current_user.role in ('teacher', 'admin') %}
+          <div class="nav-section">Управление</div>
+          <a href="{{ url_for('admin_dashboard') }}" class="{{ 'active' if request.endpoint == 'admin_dashboard' }}">
+            📊 Панель управления
+          </a>
+          <a href="{{ url_for('admin_students') }}" class="{{ 'active' if request.endpoint in ('admin_students','admin_student_detail') }}">
+            👥 Студенты
+          </a>
+          <a href="{{ url_for('admin_review') }}" class="{{ 'active' if request.endpoint in ('admin_review','admin_review_detail') }}">
+            ✏️ Проверка заданий
+          </a>
+          <a href="{{ url_for('admin_course') }}" class="{{ 'active' if 'course' in request.endpoint or 'material' in request.endpoint or 'assignment' in request.endpoint or 'test' in request.endpoint }}">
+            📚 Управление курсом
+          </a>
+          <a href="{{ url_for('admin_statistics') }}" class="{{ 'active' if request.endpoint == 'admin_statistics' }}">
+            📈 Статистика
+          </a>
+          {% if current_user.role == 'admin' %}
+          <a href="{{ url_for('admin_users') }}" class="{{ 'active' if request.endpoint == 'admin_users' }}">
+            🔑 Пользователи
+          </a>
+          {% endif %}
+        {% else %}
+          <div class="nav-section">Курс</div>
+          <a href="{{ url_for('dashboard') }}" class="{{ 'active' if request.endpoint == 'dashboard' }}">
+            🏠 Главная
+          </a>
+          <a href="{{ url_for('materials') }}" class="{{ 'active' if request.endpoint == 'materials' }}">
+            📖 Учебные материалы
+          </a>
+          <a href="{{ url_for('assignments') }}" class="{{ 'active' if request.endpoint in ('assignments','assignment_detail') }}">
+            📝 Задания
+          </a>
+          <a href="{{ url_for('tests') }}" class="{{ 'active' if request.endpoint in ('tests','test_take','test_result') }}">
+            🧪 Тесты
+          </a>
+          <a href="{{ url_for('grades') }}" class="{{ 'active' if request.endpoint == 'grades' }}">
+            🏆 Мои оценки
+          </a>
+        {% endif %}
+      {% endif %}
+    </nav>
+    {% if current_user.is_authenticated %}
+    <div class="sidebar-footer">
+      <div class="user-info">Вы вошли как</div>
+      <div class="user-name">{{ current_user.full_name }}</div>
+      <div style="margin-top:10px">
+        <a href="{{ url_for('logout') }}" class="btn btn-secondary btn-sm" style="width:100%;justify-content:center">
+          Выйти
+        </a>
+      </div>
+    </div>
+    {% endif %}
+  </aside>
+
+  <!-- Main -->
+  <main class="main-content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">
+          {% if category == 'success' %}✅{% elif category == 'danger' %}❌{% elif category == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

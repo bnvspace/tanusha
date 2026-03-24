@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block title %}Результат теста{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <h1>📊 Результат теста</h1>
+    <div class="breadcrumb">{{ test.title }}</div>
+  </div>
+  <a href="{{ url_for('tests') }}" class="btn btn-secondary btn-sm">← К тестам</a>
+</div>
+
+{% set pct = ((tsub.score / tsub.max_score * 100)|int) if tsub.max_score > 0 else 0 %}
+<div class="card" style="text-align:center;margin-bottom:20px">
+  <div style="font-size:3.5rem;margin-bottom:12px">
+    {% if pct >= 75 %}🏆{% elif pct >= 50 %}👍{% else %}📚{% endif %}
+  </div>
+  <div style="font-size:3rem;font-weight:800;color:{% if pct >= 75 %}var(--success){% elif pct >= 50 %}var(--accent){% else %}var(--danger){% endif %}">
+    {{ pct }}%
+  </div>
+  <div style="font-size:1.1rem;color:var(--muted);margin-top:4px">
+    Правильных ответов: <strong>{{ tsub.score }}</strong> из <strong>{{ tsub.max_score }}</strong>
+  </div>
+  {% if tsub.finished_at %}
+  <div style="font-size:.82rem;color:var(--muted);margin-top:8px">
+    Завершён: {{ tsub.finished_at.strftime('%d.%m.%Y %H:%M') }}
+  </div>
+  {% endif %}
+  <div style="margin-top:20px">
+    <div class="progress-wrap" style="height:14px">
+      <div class="progress-bar" style="width:{{ pct }}%"></div>
+    </div>
+  </div>
+</div>
+
+{% if test.show_answers %}
+<div class="card">
+  <div class="card-title">📋 Разбор ответов</div>
+  {% for q in test.questions %}
+  {% set ans = answers_map.get(q.id) %}
+  <div style="padding:16px 0;border-bottom:1px solid var(--border);{% if loop.last %}border-bottom:none{% endif %}">
+    <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px">
+      <span style="font-size:1.1rem">{% if ans and ans.is_correct %}✅{% else %}❌{% endif %}</span>
+      <div style="font-weight:600">{{ loop.index }}. {{ q.question_text }}</div>
+    </div>
+    {% if q.question_type == 'text' %}
+      <div style="font-size:.88rem">
+        <div>Ваш ответ: <span style="font-weight:600">{{ ans.answer_text if ans else '—' }}</span></div>
+        <div style="color:var(--success)">Правильный: <span style="font-weight:600">{{ q.options | selectattr('is_correct') | map(attribute='option_text') | join(', ') }}</span></div>
+      </div>
+    {% else %}
+      {% set selected_ids = (ans.selected_options | from_json) if ans and ans.selected_options else [] %}
+      <div style="display:flex;flex-direction:column;gap:6px">
+        {% for opt in q.options %}
+        <div style="display:flex;align-items:center;gap:8px;padding:7px 12px;border-radius:7px;
+          background:{% if opt.is_correct %}#d1e7dd{% elif opt.id in selected_ids %}#f8d7da{% else %}#f4f6fb{% endif %};
+          border:1px solid {% if opt.is_correct %}#badbcc{% elif opt.id in selected_ids %}#f5c2c7{% else %}var(--border){% endif %}">
+          <span>{% if opt.is_correct %}✅{% elif opt.id in selected_ids %}❌{% else %}⬜{% endif %}</span>
+          <span style="font-size:.88rem">{{ opt.option_text }}</span>
+          {% if opt.id in selected_ids and not opt.is_correct %}
+            <span style="font-size:.75rem;color:var(--danger);margin-left:auto">Ваш ответ</span>
+          {% elif opt.is_correct %}
+            <span style="font-size:.75rem;color:var(--success);margin-left:auto">Верный ответ</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div style="margin-top:20px;display:flex;gap:12px">
+  <a href="{{ url_for('grades') }}" class="btn btn-primary">🏆 Мои оценки</a>
+  <a href="{{ url_for('tests') }}" class="btn btn-secondary">← К тестам</a>
+</div>
+{% endblock %}

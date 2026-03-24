@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% block title %}Управление курсом{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <h1>📚 Управление курсом</h1>
+    <div class="breadcrumb">{{ course.title }}</div>
+  </div>
+  <div style="display:flex;gap:10px">
+    <a href="{{ url_for('admin_add_material') }}" class="btn btn-secondary btn-sm">+ Материал</a>
+    <a href="{{ url_for('admin_add_assignment') }}" class="btn btn-secondary btn-sm">+ Задание</a>
+    <a href="{{ url_for('admin_add_test') }}" class="btn btn-primary btn-sm">+ Тест</a>
+  </div>
+</div>
+
+<!-- Редактирование курса -->
+<div class="card" style="margin-bottom:20px">
+  <div class="card-title">📋 Информация о курсе</div>
+  <form method="POST">
+    <input type="hidden" name="action" value="update_course">
+    <div class="form-group">
+      <label class="form-label">Название курса</label>
+      <input type="text" name="title" class="form-control" value="{{ course.title }}" required>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="form-group">
+        <label class="form-label">Описание</label>
+        <textarea name="description" class="form-control" rows="3">{{ course.description or '' }}</textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Цели</label>
+        <textarea name="goals" class="form-control" rows="3">{{ course.goals or '' }}</textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Задачи</label>
+        <textarea name="objectives" class="form-control" rows="3">{{ course.objectives or '' }}</textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Содержание обучения</label>
+        <textarea name="content_info" class="form-control" rows="3">{{ course.content_info or '' }}</textarea>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary btn-sm">💾 Сохранить</button>
+  </form>
+</div>
+
+<!-- Недели и контент -->
+{% for week in course.weeks %}
+<div class="week-block" style="margin-bottom:14px">
+  <div class="week-header" style="cursor:default">
+    <div class="week-title">
+      <div class="week-num">{{ week.number }}</div>
+      {{ week.title }}
+    </div>
+    <form method="POST" onsubmit="return confirm('Удалить неделю со всем содержимым?')">
+      <input type="hidden" name="action" value="delete_week">
+      <input type="hidden" name="week_id" value="{{ week.id }}">
+      <button type="submit" class="btn btn-danger btn-sm">Удалить неделю</button>
+    </form>
+  </div>
+  <div class="week-body">
+    <!-- Материалы -->
+    {% if week.materials %}
+    <div style="margin-bottom:12px">
+      <div style="font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px">📚 Материалы</div>
+      {% for m in week.materials %}
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#fafbff;border-radius:8px;border:1px solid var(--border);margin-bottom:6px">
+        <div>
+          <span style="font-weight:600;font-size:.9rem">{{ m.title }}</span>
+          <span class="badge badge-secondary" style="margin-left:8px;font-size:.7rem">{{ m.material_type }}</span>
+          {% if not m.visible %}<span class="badge badge-revision" style="margin-left:4px;font-size:.7rem">Скрыт</span>{% endif %}
+        </div>
+        <div style="display:flex;gap:6px">
+          <a href="{{ url_for('admin_edit_material', mid=m.id) }}" class="btn btn-secondary btn-sm">✏️</a>
+          <form method="POST" action="{{ url_for('admin_delete_material', mid=m.id) }}" style="display:inline" onsubmit="return confirm('Удалить материал?')">
+            <button type="submit" class="btn btn-danger btn-sm">🗑</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Задания -->
+    {% if week.assignments %}
+    <div style="margin-bottom:12px">
+      <div style="font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px">📝 Задания</div>
+      {% for a in week.assignments %}
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#fafbff;border-radius:8px;border:1px solid var(--border);margin-bottom:6px">
+        <div>
+          <span style="font-weight:600;font-size:.9rem">{{ a.title }}</span>
+          {% if not a.visible %}<span class="badge badge-revision" style="margin-left:8px;font-size:.7rem">Скрыто</span>{% endif %}
+          {% if a.deadline %}<span style="font-size:.78rem;color:var(--muted);margin-left:8px">Дедлайн: {{ a.deadline.strftime('%d.%m.%Y') }}</span>{% endif %}
+          <span style="font-size:.78rem;color:var(--muted);margin-left:8px">{{ a.submissions | length }} ответов</span>
+        </div>
+        <div style="display:flex;gap:6px">
+          <a href="{{ url_for('admin_edit_assignment', aid=a.id) }}" class="btn btn-secondary btn-sm">✏️</a>
+          <form method="POST" action="{{ url_for('admin_delete_assignment', aid=a.id) }}" style="display:inline" onsubmit="return confirm('Удалить задание?')">
+            <button type="submit" class="btn btn-danger btn-sm">🗑</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Тесты -->
+    {% if week.tests %}
+    <div>
+      <div style="font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px">🧪 Тесты</div>
+      {% for t in week.tests %}
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#fafbff;border-radius:8px;border:1px solid var(--border);margin-bottom:6px">
+        <div>
+          <span style="font-weight:600;font-size:.9rem">{{ t.title }}</span>
+          {% if not t.visible %}<span class="badge badge-revision" style="margin-left:8px;font-size:.7rem">Скрыт</span>{% endif %}
+          <span style="font-size:.78rem;color:var(--muted);margin-left:8px">{{ t.questions|length }} вопр.</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if not week.materials and not week.assignments and not week.tests %}
+    <p style="color:var(--muted);font-size:.85rem;text-align:center">Содержимое не добавлено</p>
+    {% endif %}
+  </div>
+</div>
+{% endfor %}
+
+<!-- Добавить неделю -->
+<div class="card">
+  <div class="card-title">➕ Добавить неделю</div>
+  <form method="POST" style="display:flex;gap:12px;align-items:flex-end">
+    <input type="hidden" name="action" value="add_week">
+    <div class="form-group" style="flex:1;margin-bottom:0">
+      <label class="form-label">Название недели</label>
+      <input type="text" name="week_title" class="form-control" placeholder="Неделя 5: Технические переговоры">
+    </div>
+    <button type="submit" class="btn btn-primary">Добавить</button>
+  </form>
+</div>
+{% endblock %}

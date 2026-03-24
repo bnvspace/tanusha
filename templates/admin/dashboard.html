@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}Панель управления{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <h1>📊 Панель управления</h1>
+    <div class="breadcrumb">Добро пожаловать, {{ current_user.full_name }}</div>
+  </div>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon">👥</div>
+    <div class="stat-label">Студентов</div>
+    <div class="stat-value">{{ students | length }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">⏳</div>
+    <div class="stat-label">Ждут проверки</div>
+    <div class="stat-value" style="color:var(--warning)">{{ pending }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">📝</div>
+    <div class="stat-label">Всего ответов</div>
+    <div class="stat-value">{{ total_subs }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">🧪</div>
+    <div class="stat-label">Тестов пройдено</div>
+    <div class="stat-value">{{ test_subs }}</div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+  <!-- Быстрые действия -->
+  <div class="card">
+    <div class="card-title">⚡ Быстрые действия</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <a href="{{ url_for('admin_review') }}" class="btn btn-primary">
+        ✏️ Проверить задания
+        {% if pending > 0 %}<span style="background:#fff;color:var(--primary);border-radius:20px;padding:1px 8px;font-size:.78rem;margin-left:4px">{{ pending }}</span>{% endif %}
+      </a>
+      <a href="{{ url_for('admin_add_assignment') }}" class="btn btn-secondary">📝 Добавить задание</a>
+      <a href="{{ url_for('admin_add_material') }}" class="btn btn-secondary">📎 Добавить материал</a>
+      <a href="{{ url_for('admin_add_test') }}" class="btn btn-secondary">🧪 Создать тест</a>
+      <a href="{{ url_for('admin_statistics') }}" class="btn btn-secondary">📈 Статистика</a>
+    </div>
+  </div>
+
+  <!-- Студенты -->
+  <div class="card">
+    <div class="card-title">👥 Студенты</div>
+    {% if students %}
+    <div style="max-height:250px;overflow-y:auto">
+      {% for s in students[:10] %}
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+        <div>
+          <div style="font-weight:600;font-size:.9rem">{{ s.full_name }}</div>
+          <div style="font-size:.75rem;color:var(--muted)">@{{ s.username }}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="badge {% if s.is_active %}badge-success{% else %}badge-revision{% endif %}">
+            {{ 'Активен' if s.is_active else 'Заблокирован' }}
+          </span>
+          <a href="{{ url_for('admin_student_detail', uid=s.id) }}" class="btn btn-secondary btn-sm">→</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% if students | length > 10 %}
+    <a href="{{ url_for('admin_students') }}" style="font-size:.82rem;color:var(--primary);margin-top:10px;display:block">
+      Показать всех ({{ students | length }}) →
+    </a>
+    {% endif %}
+    {% else %}
+    <p style="color:var(--muted);font-size:.88rem">Студентов пока нет.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
