@@ -1,7 +1,7 @@
 <?php
 // pages/dashboard.php
-require_once 'config.php';
-require_once 'auth.php';
+
+
 
 // Данные курса
 $stmt = $db->query("SELECT * FROM courses LIMIT 1");

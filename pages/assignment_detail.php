@@ -1,7 +1,7 @@
 <?php
 // pages/assignment_detail.php
-require_once 'config.php';
-require_once 'auth.php';
+
+
 
 $aid = $_GET['aid'] ?? null;
 if (!$aid) {

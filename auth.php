@@ -8,7 +8,7 @@ function is_authenticated() {
     return isset($_SESSION['user_id']);
 }
 
-function get_current_user() {
+function get_logged_in_user() {
     global $db;
     if (!is_authenticated()) return null;
     
@@ -18,14 +18,14 @@ function get_current_user() {
 }
 
 function login_required($roles = []) {
-    $user = get_current_user();
+    $user = get_logged_in_user();
     if (!$user) {
-        header("Location: /login.php");
+        header("Location: index.php?route=landing");
         exit;
     }
     
     if (!empty($roles) && !in_array($user['role'], $roles)) {
-        header("Location: /dashboard.php");
+        header("Location: index.php?route=dashboard");
         exit;
     }
     return $user;
@@ -47,7 +47,7 @@ function verify_login($username, $password) {
 
 function logout() {
     session_destroy();
-    header("Location: /index.php");
+    header("Location: index.php?route=landing");
     exit;
 }
 ?>

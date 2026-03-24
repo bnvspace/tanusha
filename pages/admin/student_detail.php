@@ -1,7 +1,7 @@
 <?php
 // pages/admin/student_detail.php
-require_once 'config.php';
-require_once 'auth.php';
+
+
 
 $user = login_required(['teacher', 'admin']);
 

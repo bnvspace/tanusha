@@ -1,7 +1,7 @@
 <?php
 // pages/test_take.php
-require_once 'config.php';
-require_once 'auth.php';
+
+
 
 $tid = $_GET['tid'] ?? null;
 if (!$tid) {

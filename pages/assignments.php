@@ -1,7 +1,7 @@
 <?php
 // pages/assignments.php
-require_once 'config.php';
-require_once 'auth.php';
+
+
 
 $stmt = $db->query("SELECT * FROM courses LIMIT 1");
 $course = $stmt->fetch();

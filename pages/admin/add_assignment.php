@@ -1,7 +1,7 @@
 <?php
 // pages/admin/add_assignment.php
-require_once 'config.php';
-require_once 'auth.php';
+
+
 
 $user = login_required(['teacher', 'admin']);
 

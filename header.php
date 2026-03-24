@@ -1,6 +1,6 @@
 <?php
-require_once 'auth.php';
-$user = get_current_user();
+
+$user = get_logged_in_user();
 $route = $_GET['route'] ?? 'landing';
 ?>
 <!DOCTYPE html>

@@ -1,7 +1,7 @@
 <?php
 // pages/landing.php
 if (is_authenticated()) {
-    $user = get_current_user();
+    $user = get_logged_in_user();
     if (in_array($user['role'], ['teacher', 'admin'])) {
         header("Location: index.php?route=admin_dashboard");
     } else {

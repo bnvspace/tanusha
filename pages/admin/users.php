@@ -1,7 +1,7 @@
 <?php
 // pages/admin/users.php
-require_once 'config.php';
-require_once 'auth.php';
+
+
 
 $user = login_required(['admin']);
 
