@@ -1,7 +1,8 @@
 <?php
 // index.php - Главный роутер проекта
+define('ROOT_PATH', __DIR__);
 
-require_once 'auth.php';
+require_once ROOT_PATH . '/auth.php';
 
 $route = $_GET['route'] ?? 'landing';
 

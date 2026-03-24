@@ -2,7 +2,7 @@
 // auth.php - Управление сессиями и авторизацией
 
 session_start();
-require_once 'config.php';
+require_once __DIR__ . '/config.php';
 
 function is_authenticated() {
     return isset($_SESSION['user_id']);
