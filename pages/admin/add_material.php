@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt = $db->prepare("INSERT INTO materials (week_id, material_type, title, content, url, file_path, open_date, visible) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
     $stmt->execute([$week_id, $material_type, $title, $content, $url, $file_path, $open_date, $visible]);
     
-    set_flash('Материал успешно добавлен!', 'success');
+    set_flash(__('material_added_success'), 'success');
     header("Location: index.php?route=admin_course");
     exit;
 }
@@ -37,73 +37,73 @@ $stmt = $db->prepare("SELECT * FROM weeks WHERE course_id = ? ORDER BY number");
 $stmt->execute([$course['id']]);
 $weeks = $stmt->fetchAll();
 
-$page_title = 'Добавить материал';
+$page_title = __('add_material_title');
 include 'header.php';
 ?>
 
 <div class="topbar">
   <div>
-    <h1>📎 Добавить материал</h1>
-    <div class="breadcrumb">Учебный контент для студентов</div>
+    <h1>📎 <?= __('add_material_title') ?></h1>
+    <div class="breadcrumb"><?= __('learning_content_subtitle') ?></div>
   </div>
-  <a href="index.php?route=admin_course" class="btn btn-secondary btn-sm">← Назад</a>
+  <a href="index.php?route=admin_course" class="btn btn-secondary btn-sm"><?= __('back_btn') ?></a>
 </div>
 
 <div class="card">
   <form method="POST" enctype="multipart/form-data">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div class="form-group">
-        <label class="form-label">Неделя</label>
+        <label class="form-label"><?= __('week') ?></label>
         <select name="week_id" class="form-control" required>
           <?php foreach ($weeks as $week): ?>
-          <option value="<?= $week['id'] ?>">Неделя <?= $week['number'] ?>: <?= htmlspecialchars($week['title']) ?></option>
+          <option value="<?= $week['id'] ?>"><?= __('week') ?> <?= $week['number'] ?>: <?= htmlspecialchars($week['title']) ?></option>
           <?php endforeach; ?>
         </select>
       </div>
       <div class="form-group">
-        <label class="form-label">Тип материала</label>
+        <label class="form-label"><?= __('material_type') ?></label>
         <select name="material_type" class="form-control" id="type-select" onchange="updateFields()">
-          <option value="text">📝 Текст</option>
-          <option value="file">📄 Файл</option>
-          <option value="video">🎬 Видео</option>
-          <option value="audio">🎵 Аудио</option>
-          <option value="link">🔗 Ссылка</option>
-          <option value="interactive">🎯 Интерактивное задание</option>
+          <option value="text">📝 <?= __('material_text') ?></option>
+          <option value="file">📄 <?= __('material_file') ?></option>
+          <option value="video">🎬 <?= __('material_video') ?></option>
+          <option value="audio">🎵 <?= __('material_audio') ?></option>
+          <option value="link">🔗 <?= __('material_link') ?></option>
+          <option value="interactive">🎯 <?= __('material_interactive') ?></option>
         </select>
       </div>
     </div>
     <div class="form-group">
-      <label class="form-label">Название</label>
-      <input type="text" name="title" class="form-control" placeholder="Например: Лексика по теме «Теплообмен»" required>
+      <label class="form-label"><?= __('title') ?></label>
+      <input type="text" name="title" class="form-control" placeholder="<?= __('material_name_placeholder') ?>" required>
     </div>
     <div class="form-group">
-      <label class="form-label">Содержание / описание</label>
-      <textarea name="content" class="form-control" rows="4" placeholder="Текст материала или описание..."></textarea>
+      <label class="form-label"><?= __('content_description') ?></label>
+      <textarea name="content" class="form-control" rows="4" placeholder="<?= __('material_desc_placeholder') ?>"></textarea>
     </div>
     <div class="form-group" id="url-group">
-      <label class="form-label">URL (для ссылок и видео)</label>
+      <label class="form-label"><?= __('url_lbl') ?></label>
       <input type="url" name="url" class="form-control" placeholder="https://...">
     </div>
     <div class="form-group" id="file-group">
-      <label class="form-label">Прикрепить файл</label>
+      <label class="form-label"><?= __('attach_file') ?></label>
       <input type="file" name="file" class="form-control">
-      <div class="form-hint">PDF, Word, PPT, аудио, видео, изображения, ZIP. До 50 МБ.</div>
+      <div class="form-hint"><?= __('file_hint') ?></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div class="form-group">
-        <label class="form-label">Дата открытия</label>
+        <label class="form-label"><?= __('open_date_lbl') ?></label>
         <input type="datetime-local" name="open_date" class="form-control">
-        <div class="form-hint">Оставьте пустым — доступно сразу</div>
+        <div class="form-hint"><?= __('leave_empty_for_immediate') ?></div>
       </div>
       <div class="form-group">
-        <label class="form-label">Видимость</label>
+        <label class="form-label"><?= __('visibility') ?></label>
         <select name="visible" class="form-control">
-          <option value="1">Видимо студентам</option>
-          <option value="0">Скрыто</option>
+          <option value="1"><?= __('visible_to_students') ?></option>
+          <option value="0"><?= __('hidden') ?></option>
         </select>
       </div>
     </div>
-    <button type="submit" class="btn btn-primary">✅ Добавить материал</button>
+    <button type="submit" class="btn btn-primary">✅ <?= __('add_material_title') ?></button>
   </form>
 </div>
 

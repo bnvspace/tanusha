@@ -47,16 +47,16 @@ foreach ($answers as $a) {
 
 $pct = ($tsub['max_score'] > 0) ? intval($tsub['score'] / $tsub['max_score'] * 100) : 0;
 
-$page_title = 'Результат теста';
+$page_title = __('test_result_title');
 include 'header.php';
 ?>
 
 <div class="topbar">
   <div>
-    <h1>📊 Результат теста</h1>
+    <h1>📊 <?= __('test_result_title') ?></h1>
     <div class="breadcrumb"><?= htmlspecialchars($test['title']) ?></div>
   </div>
-  <a href="index.php?route=tests" class="btn btn-secondary btn-sm">← К тестам</a>
+  <a href="index.php?route=tests" class="btn btn-secondary btn-sm"><?= __('back_to_tests') ?></a>
 </div>
 
 <div class="card" style="text-align:center;margin-bottom:20px">
@@ -67,11 +67,11 @@ include 'header.php';
     <?= $pct ?>%
   </div>
   <div style="font-size:1.1rem;color:var(--muted);margin-top:4px">
-    Правильных ответов: <strong><?= $tsub['score'] ?></strong> из <strong><?= $tsub['max_score'] ?></strong>
+    <?= __('correct_answers_lbl') ?> <strong><?= $tsub['score'] ?></strong> <?= __('out_of') ?> <strong><?= $tsub['max_score'] ?></strong>
   </div>
   <?php if ($tsub['finished_at']): ?>
   <div style="font-size:.82rem;color:var(--muted);margin-top:8px">
-    Завершён: <?= date('d.m.Y H:i', strtotime($tsub['finished_at'])) ?>
+    <?= __('finished_at_lbl') ?> <?= date('d.m.Y H:i', strtotime($tsub['finished_at'])) ?>
   </div>
   <?php endif; ?>
   <div style="margin-top:20px">
@@ -83,7 +83,7 @@ include 'header.php';
 
 <?php if ($test['show_answers']): ?>
 <div class="card">
-  <div class="card-title">📋 Разбор ответов</div>
+  <div class="card-title">📋 <?= __('answers_breakdown') ?></div>
   <?php foreach ($questions as $index => $q): 
       $ans = $answers_map[$q['id']] ?? null;
   ?>
@@ -98,8 +98,8 @@ include 'header.php';
         $correct_texts = array_column($correct_options, 'option_text');
     ?>
       <div style="font-size:.88rem">
-        <div>Ваш ответ: <span style="font-weight:600"><?= htmlspecialchars($ans['answer_text'] ?? '—') ?></span></div>
-        <div style="color:var(--success)">Правильный: <span style="font-weight:600"><?= htmlspecialchars(implode(', ', $correct_texts)) ?></span></div>
+        <div><?= __('your_answer') ?> <span style="font-weight:600"><?= htmlspecialchars($ans['answer_text'] ?? '—') ?></span></div>
+        <div style="color:var(--success)"><?= __('correct_answer') ?> <span style="font-weight:600"><?= htmlspecialchars(implode(', ', $correct_texts)) ?></span></div>
       </div>
     <?php else: 
         $selected_ids = $ans ? json_decode($ans['selected_options'], true) : [];
@@ -117,9 +117,9 @@ include 'header.php';
           <span><?= $opt['is_correct'] ? '✅' : ($is_selected ? '❌' : '⬜') ?></span>
           <span style="font-size:.88rem"><?= htmlspecialchars($opt['option_text']) ?></span>
           <?php if ($is_selected && !$opt['is_correct']): ?>
-            <span style="font-size:.75rem;color:var(--danger);margin-left:auto">Ваш ответ</span>
+            <span style="font-size:.75rem;color:var(--danger);margin-left:auto"><?= __('your_answer') ?></span>
           <?php elseif ($opt['is_correct']): ?>
-            <span style="font-size:.75rem;color:var(--success);margin-left:auto">Верный ответ</span>
+            <span style="font-size:.75rem;color:var(--success);margin-left:auto"><?= __('correct_answer_lbl') ?></span>
           <?php endif; ?>
         </div>
         <?php endforeach; ?>
@@ -131,8 +131,8 @@ include 'header.php';
 <?php endif; ?>
 
 <div style="margin-top:20px;display:flex;gap:12px">
-  <a href="index.php?route=grades" class="btn btn-primary">🏆 Мои оценки</a>
-  <a href="index.php?route=tests" class="btn btn-secondary">← К тестам</a>
+  <a href="index.php?route=grades" class="btn btn-primary">🏆 <?= __('my_grades') ?></a>
+  <a href="index.php?route=tests" class="btn btn-secondary"><?= __('back_to_tests') ?></a>
 </div>
 
 <?php include 'footer.php'; ?>

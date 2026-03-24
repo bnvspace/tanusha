@@ -4,6 +4,16 @@
 session_start();
 require_once __DIR__ . '/config.php';
 
+// Переводы
+function __($key) {
+    static $translations = null;
+    if ($translations === null) {
+        $translations = require __DIR__ . '/lang.php';
+    }
+    $lang = $_SESSION['lang'] ?? 'ru';
+    return $translations[$lang][$key] ?? $key;
+}
+
 function is_authenticated() {
     return isset($_SESSION['user_id']);
 }

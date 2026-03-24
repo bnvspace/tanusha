@@ -70,28 +70,28 @@ foreach ($rows as $row) {
 }
 $pct = $total_items > 0 ? intval($done_items / $total_items * 100) : 0;
 
-$page_title = 'Мои оценки';
+$page_title = __('my_grades');
 include 'header.php';
 ?>
 
 <div class="topbar">
   <div>
-    <h1>🏆 Мои оценки</h1>
-    <div class="breadcrumb">Прогресс выполнения курса</div>
+    <h1>🏆 <?= __('my_grades') ?></h1>
+    <div class="breadcrumb"><?= __('course_progress') ?></div>
   </div>
 </div>
 
 <div class="stats-grid" style="margin-bottom:24px">
   <div class="stat-card">
     <div class="stat-icon">📊</div>
-    <div class="stat-label">Средний балл</div>
+    <div class="stat-label"><?= __('average_score') ?></div>
     <div class="stat-value" style="color:<?= $avg >= 75 ? 'var(--success)' : ($avg >= 50 ? 'var(--accent)' : 'var(--danger)') ?>">
       <?= $avg ?>
     </div>
   </div>
   <div class="stat-card">
     <div class="stat-icon">✅</div>
-    <div class="stat-label">Проверено заданий</div>
+    <div class="stat-label"><?= __('reviewed_assignments') ?></div>
     <div class="stat-value">
         <?php 
         $reviewed_count = 0;
@@ -102,7 +102,7 @@ include 'header.php';
   </div>
   <div class="stat-card">
     <div class="stat-icon">🧪</div>
-    <div class="stat-label">Тестов пройдено</div>
+    <div class="stat-label"><?= __('tests_passed') ?></div>
     <div class="stat-value">
         <?php 
         $tests_count = 0;
@@ -115,27 +115,27 @@ include 'header.php';
 
 <div class="card" style="margin-bottom:20px">
   <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-    <span style="font-weight:600">Общий прогресс курса</span>
+    <span style="font-weight:600"><?= __('total_course_progress') ?></span>
     <span style="font-weight:800;color:var(--primary)"><?= $pct ?>%</span>
   </div>
   <div class="progress-wrap">
     <div class="progress-bar" style="width:<?= $pct ?>%"></div>
   </div>
-  <div class="progress-label"><?= $done_items ?> из <?= $total_items ?> элементов выполнено</div>
+  <div class="progress-label"><?= $done_items ?> <?= __('out_of') ?> <?= $total_items ?> <?= __('items_completed') ?></div>
 </div>
 
 <div class="card">
-  <div class="card-title">📋 Подробные результаты</div>
+  <div class="card-title">📋 <?= __('detailed_results') ?></div>
   <div class="table-wrap">
     <table>
       <thead>
         <tr>
-          <th>Неделя</th>
-          <th>Название</th>
-          <th>Тип</th>
-          <th>Статус</th>
-          <th>Оценка</th>
-          <th>Комментарий</th>
+          <th><?= __('week') ?></th>
+          <th><?= __('item_title') ?? __('title') ?? 'Название' ?></th>
+          <th><?= __('item_type') ?? __('type') ?? 'Тип' ?></th>
+          <th><?= __('item_status') ?? __('status') ?? 'Статус' ?></th>
+          <th><?= __('item_grade') ?? __('grade') ?? 'Оценка' ?></th>
+          <th><?= __('item_comment') ?? __('comment') ?? 'Комментарий' ?></th>
         </tr>
       </thead>
       <tbody>
@@ -155,29 +155,29 @@ include 'header.php';
           </td>
           <td>
             <?php if ($row['type'] == 'assignment'): ?>
-              <span class="badge badge-info">📝 Задание</span>
+              <span class="badge badge-info">📝 <?= __('assignment_type') ?></span>
             <?php else: ?>
-              <span class="badge badge-secondary">🧪 Тест</span>
+              <span class="badge badge-secondary">🧪 <?= __('test_type') ?></span>
             <?php endif; ?>
           </td>
           <td>
             <?php if ($row['type'] == 'assignment'): ?>
               <?php if ($row['submission']): ?>
                 <?php if ($row['submission']['status'] == 'pending'): ?>
-                  <span class="badge badge-pending">⏳ На проверке</span>
+                  <span class="badge badge-pending">⏳ <?= __('pending') ?></span>
                 <?php elseif ($row['submission']['status'] == 'reviewed'): ?>
-                  <span class="badge badge-reviewed">✅ Проверено</span>
+                  <span class="badge badge-reviewed">✅ <?= __('reviewed') ?></span>
                 <?php else: ?>
-                  <span class="badge badge-revision">🔄 Доработать</span>
+                  <span class="badge badge-revision">🔄 <?= __('revision') ?></span>
                 <?php endif; ?>
               <?php else: ?>
-                <span class="badge badge-secondary">Не сдано</span>
+                <span class="badge badge-secondary"><?= __('not_submitted') ?></span>
               <?php endif; ?>
             <?php else: ?>
               <?php if ($row['tsub']): ?>
-                <span class="badge badge-reviewed">✅ Пройдено</span>
+                <span class="badge badge-reviewed">✅ <?= __('passed') ?></span>
               <?php else: ?>
-                <span class="badge badge-secondary">Не пройдено</span>
+                <span class="badge badge-secondary"><?= __('not_passed') ?></span>
               <?php endif; ?>
             <?php endif; ?>
           </td>
@@ -207,7 +207,7 @@ include 'header.php';
         <?php endforeach; ?>
         <?php if (empty($rows)): ?>
         <tr>
-          <td colspan="6" style="text-align:center;color:var(--muted);padding:30px">Нет элементов</td>
+          <td colspan="6" style="text-align:center;color:var(--muted);padding:30px"><?= __('no_items') ?></td>
         </tr>
         <?php endif; ?>
       </tbody>

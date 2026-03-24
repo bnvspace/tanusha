@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt = $db->prepare("UPDATE materials SET week_id = ?, material_type = ?, title = ?, content = ?, url = ?, file_path = ?, open_date = ?, visible = ? WHERE id = ?");
     $stmt->execute([$week_id, $material_type, $title, $content, $url, $file_path, $open_date, $visible, $mid]);
     
-    set_flash('Материал обновлен!', 'success');
+    set_flash(__('material_updated_success'), 'success');
     header("Location: index.php?route=admin_course");
     exit;
 }
@@ -51,43 +51,52 @@ $stmt = $db->prepare("SELECT * FROM weeks WHERE course_id = ? ORDER BY number");
 $stmt->execute([$course['id']]);
 $weeks = $stmt->fetchAll();
 
-$page_title = 'Редактировать материал';
+$page_title = __('edit_material_title');
 include 'header.php';
 ?>
 
 <div class="topbar">
   <div>
-    <h1>✏️ Редактировать материал</h1>
+    <h1>✏️ <?= __('edit_material_title') ?></h1>
   </div>
-  <a href="index.php?route=admin_course" class="btn btn-secondary btn-sm">← Назад</a>
+  <a href="index.php?route=admin_course" class="btn btn-secondary btn-sm"><?= __('back_btn') ?></a>
 </div>
 
 <div class="card">
   <form method="POST" enctype="multipart/form-data">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div class="form-group">
-        <label class="form-label">Неделя</label>
+        <label class="form-label"><?= __('week') ?></label>
         <select name="week_id" class="form-control" required>
           <?php foreach ($weeks as $week): ?>
-          <option value="<?= $week['id'] ?>" <?= $week['id'] == $material['week_id'] ? 'selected' : '' ?>>Неделя <?= $week['number'] ?>: <?= htmlspecialchars($week['title']) ?></option>
+          <option value="<?= $week['id'] ?>" <?= $week['id'] == $material['week_id'] ? 'selected' : '' ?>><?= __('week') ?> <?= $week['number'] ?>: <?= htmlspecialchars($week['title']) ?></option>
           <?php endforeach; ?>
         </select>
       </div>
       <div class="form-group">
-        <label class="form-label">Тип материала</label>
+        <label class="form-label"><?= __('material_type') ?></label>
         <select name="material_type" class="form-control">
-          <?php foreach (['text','file','video','audio','link','interactive'] as $t): ?>
-          <option value="<?= $t ?>" <?= $t == $material['material_type'] ? 'selected' : '' ?>><?= $t ?></option>
+          <?php
+          $types = [
+            'text' => __('material_text'),
+            'file' => __('material_file'),
+            'video' => __('material_video'),
+            'audio' => __('material_audio'),
+            'link' => __('material_link'),
+            'interactive' => __('material_interactive')
+          ];
+          foreach ($types as $t_val => $t_label): ?>
+          <option value="<?= $t_val ?>" <?= $t_val == $material['material_type'] ? 'selected' : '' ?>><?= $t_label ?></option>
           <?php endforeach; ?>
         </select>
       </div>
     </div>
     <div class="form-group">
-      <label class="form-label">Название</label>
+      <label class="form-label"><?= __('item_title') ?></label>
       <input type="text" name="title" class="form-control" value="<?= htmlspecialchars($material['title']) ?>" required>
     </div>
     <div class="form-group">
-      <label class="form-label">Содержание / описание</label>
+      <label class="form-label"><?= __('content_description') ?></label>
       <textarea name="content" class="form-control" rows="4"><?= htmlspecialchars($material['content'] ?? '') ?></textarea>
     </div>
     <div class="form-group">
@@ -95,27 +104,27 @@ include 'header.php';
       <input type="url" name="url" class="form-control" value="<?= htmlspecialchars($material['url'] ?? '') ?>">
     </div>
     <div class="form-group">
-      <label class="form-label">Заменить файл</label>
+      <label class="form-label"><?= __('replace_file') ?></label>
       <input type="file" name="file" class="form-control">
       <?php if ($material['file_path']): ?>
-      <div class="form-hint">Текущий файл: <a href="/uploads/<?= htmlspecialchars($material['file_path']) ?>" target="_blank">скачать</a></div>
+      <div class="form-hint"><?= __('current_file') ?> <a href="/uploads/<?= htmlspecialchars($material['file_path']) ?>" target="_blank"><?= __('download') ?></a></div>
       <?php endif; ?>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div class="form-group">
-        <label class="form-label">Дата открытия</label>
+        <label class="form-label"><?= __('open_date_lbl') ?></label>
         <input type="datetime-local" name="open_date" class="form-control"
           value="<?= $material['open_date'] ? date('Y-m-d\TH:i', strtotime($material['open_date'])) : '' ?>">
       </div>
       <div class="form-group">
-        <label class="form-label">Видимость</label>
+        <label class="form-label"><?= __('visibility') ?></label>
         <select name="visible" class="form-control">
-          <option value="1" <?= $material['visible'] ? 'selected' : '' ?>>Видимо</option>
-          <option value="0" <?= !$material['visible'] ? 'selected' : '' ?>>Скрыто</option>
+          <option value="1" <?= $material['visible'] ? 'selected' : '' ?>><?= __('visible_short') ?></option>
+          <option value="0" <?= !$material['visible'] ? 'selected' : '' ?>><?= __('hidden') ?></option>
         </select>
       </div>
     </div>
-    <button type="submit" class="btn btn-primary">💾 Сохранить</button>
+    <button type="submit" class="btn btn-primary">💾 <?= __('save') ?></button>
   </form>
 </div>
 

@@ -35,14 +35,14 @@ foreach ($weeks as $week) {
     }
 }
 
-$page_title = 'Задания';
+$page_title = __('assignments');
 include 'header.php';
 ?>
 
 <div class="topbar">
   <div>
-    <h1>📝 Задания</h1>
-    <div class="breadcrumb">Все задания курса</div>
+    <h1>📝 <?= __('assignments') ?></h1>
+    <div class="breadcrumb"><?= __('all_assignments') ?></div>
   </div>
 </div>
 
@@ -59,13 +59,13 @@ include 'header.php';
   <div style="border-bottom:1px solid var(--border);padding:16px 0;<?= $is_last ? 'border-bottom:none;' : '' ?>">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
       <div>
-        <div style="font-size:.75rem;color:var(--muted);margin-bottom:4px">Неделя <?= $week['number'] ?></div>
+        <div style="font-size:.75rem;color:var(--muted);margin-bottom:4px"><?= __('week') ?> <?= $week['number'] ?></div>
         <div style="font-weight:700;font-size:1rem"><?= htmlspecialchars($a['title']) ?></div>
         <?php if ($deadline): ?>
         <div style="font-size:.8rem;color:var(--muted);margin-top:3px">
-          ⏰ Срок: <?= $deadline->format('d.m.Y H:i') ?>
+          ⏰ <?= __('due_date') ?>: <?= $deadline->format('d.m.Y H:i') ?>
           <?php if ($is_overdue): ?>
-            <span class="badge badge-revision" style="margin-left:6px">Просрочено</span>
+            <span class="badge badge-revision" style="margin-left:6px"><?= __('overdue') ?></span>
           <?php endif; ?>
         </div>
         <?php endif; ?>
@@ -73,20 +73,20 @@ include 'header.php';
       <div style="display:flex;align-items:center;gap:12px">
         <?php if ($sub): ?>
           <?php if ($sub['status'] == 'pending'): ?>
-            <span class="badge badge-pending">⏳ Ожидает проверки</span>
+            <span class="badge badge-pending">⏳ <?= __('pending') ?></span>
           <?php elseif ($sub['status'] == 'reviewed'): ?>
-            <span class="badge badge-reviewed">✅ Проверено</span>
+            <span class="badge badge-reviewed">✅ <?= __('reviewed') ?></span>
             <?php if ($sub['grade'] !== null): ?>
             <span style="font-weight:800;font-size:1.1rem;color:var(--primary)"><?= $sub['grade'] ?>/100</span>
             <?php endif; ?>
           <?php elseif ($sub['status'] == 'revision'): ?>
-            <span class="badge badge-revision">🔄 Доработать</span>
+            <span class="badge badge-revision">🔄 <?= __('revision') ?></span>
           <?php endif; ?>
         <?php else: ?>
-          <span class="badge badge-secondary">Не сдано</span>
+          <span class="badge badge-secondary"><?= __('not_submitted') ?></span>
         <?php endif; ?>
         <a href="index.php?route=assignment_detail&aid=<?= $a['id'] ?>" class="btn btn-primary btn-sm">
-          <?= !$sub ? 'Открыть' : 'Подробнее' ?>
+          <?= !$sub ? __('open') : __('details') ?>
         </a>
       </div>
     </div>
@@ -95,7 +95,7 @@ include 'header.php';
 </div>
 <?php else: ?>
 <div class="card">
-  <p style="text-align:center;color:var(--muted);padding:40px">Заданий пока нет.</p>
+  <p style="text-align:center;color:var(--muted);padding:40px"><?= __('no_data') ?></p>
 </div>
 <?php endif; ?>
 

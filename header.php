@@ -19,60 +19,67 @@ $route = $_GET['route'] ?? 'landing';
   <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <div class="logo-title">🎓 ИЯ для теплоэнергетиков</div>
-      <div class="logo-sub">Образовательный портал</div>
+      <div class="logo-title">🎓 <?= __('app_name') ?></div>
+      <div class="logo-sub"><?= __('app_sub') ?></div>
     </div>
+    
+    <div class="lang-switcher" style="display:flex;gap:12px;padding:0 20px 20px;font-size:0.75rem;font-weight:600">
+      <a href="index.php?route=set_lang&lang=ru" style="color:<?= $_SESSION['lang'] == 'ru' ? 'var(--primary)' : 'var(--muted)' ?>">RU</a>
+      <a href="index.php?route=set_lang&lang=kk" style="color:<?= $_SESSION['lang'] == 'kk' ? 'var(--primary)' : 'var(--muted)' ?>">KK</a>
+      <a href="index.php?route=set_lang&lang=en" style="color:<?= $_SESSION['lang'] == 'en' ? 'var(--primary)' : 'var(--muted)' ?>">EN</a>
+    </div>
+
     <nav class="sidebar-nav">
       <?php if ($user): ?>
         <?php if (in_array($user['role'], ['teacher', 'admin'])): ?>
-          <div class="nav-section">Управление</div>
+          <div class="nav-section"><?= __('admin_panel') ?></div>
           <a href="/index.php?route=admin_dashboard" class="<?= $route == 'admin_dashboard' ? 'active' : '' ?>">
-            📊 Панель управления
+            📊 <?= __('admin_panel') ?>
           </a>
           <a href="/index.php?route=admin_students" class="<?= in_array($route, ['admin_students', 'admin_student_detail']) ? 'active' : '' ?>">
-            👥 Студенты
+            👥 <?= __('students') ?>
           </a>
           <a href="/index.php?route=admin_review" class="<?= in_array($route, ['admin_review', 'admin_review_detail']) ? 'active' : '' ?>">
-            ✏️ Проверка заданий
+            ✏️ <?= __('review') ?>
           </a>
           <a href="/index.php?route=admin_course" class="<?= (strpos($route, 'course') !== false || strpos($route, 'material') !== false || strpos($route, 'assignment') !== false || strpos($route, 'test') !== false) ? 'active' : '' ?>">
-            📚 Управление курсом
+            📚 <?= __('course_mgmt') ?>
           </a>
           <a href="/index.php?route=admin_statistics" class="<?= $route == 'admin_statistics' ? 'active' : '' ?>">
-            📈 Статистика
+            📈 <?= __('statistics') ?>
           </a>
           <?php if ($user['role'] == 'admin'): ?>
           <a href="/index.php?route=admin_users" class="<?= $route == 'admin_users' ? 'active' : '' ?>">
-            🔑 Пользователи
+            🔑 <?= __('users') ?>
           </a>
           <?php endif; ?>
         <?php else: ?>
-          <div class="nav-section">Курс</div>
+          <div class="nav-section"><?= __('course_mgmt') ?></div>
           <a href="/index.php?route=dashboard" class="<?= $route == 'dashboard' ? 'active' : '' ?>">
-            🏠 Главная
+            🏠 <?= __('dashboard') ?>
           </a>
           <a href="/index.php?route=materials" class="<?= $route == 'materials' ? 'active' : '' ?>">
-            📖 Учебные материалы
+            📖 <?= __('materials') ?>
           </a>
           <a href="/index.php?route=assignments" class="<?= in_array($route, ['assignments', 'assignment_detail']) ? 'active' : '' ?>">
-            📝 Задания
+            📝 <?= __('assignments') ?>
           </a>
           <a href="/index.php?route=tests" class="<?= in_array($route, ['tests', 'test_take', 'test_result']) ? 'active' : '' ?>">
-            🧪 Тесты
+            🧪 <?= __('tests') ?>
           </a>
           <a href="/index.php?route=grades" class="<?= $route == 'grades' ? 'active' : '' ?>">
-            🏆 Мои оценки
+            🏆 <?= __('grades') ?>
           </a>
         <?php endif; ?>
       <?php endif; ?>
     </nav>
     <?php if ($user): ?>
     <div class="sidebar-footer">
-      <div class="user-info">Вы вошли как</div>
+      <div class="user-info"><?= __('welcome') ?></div>
       <div class="user-name"><?= htmlspecialchars($user['full_name']) ?></div>
       <div style="margin-top:10px">
         <a href="/index.php?route=logout" class="btn btn-secondary btn-sm" style="width:100%;justify-content:center">
-          Выйти
+          <?= __('logout') ?>
         </a>
       </div>
     </div>

@@ -26,24 +26,24 @@ $stmt = $db->prepare("SELECT s.*, u.full_name as student_name, a.title as assign
 $stmt->execute();
 $reviewed = $stmt->fetchAll();
 
-$page_title = 'Проверка заданий';
+$page_title = __('review_assignments_title');
 include 'header.php';
 ?>
 
 <div class="topbar">
   <div>
-    <h1>✏️ Проверка заданий</h1>
-    <div class="breadcrumb"><?= count($pending) ?> ожидают проверки</div>
+    <h1>✏️ <?= __('review_assignments_title') ?></h1>
+    <div class="breadcrumb"><?= count($pending) ?> <?= __('pending_review_count') ?></div>
   </div>
 </div>
 
 <?php if (!empty($pending)): ?>
 <div class="card" style="margin-bottom:20px">
-  <div class="card-title" style="color:var(--danger)">⏳ Ожидают проверки (<?= count($pending) ?>)</div>
+  <div class="card-title" style="color:var(--danger)">⏳ <?= __('pending_review_title') ?> (<?= count($pending) ?>)</div>
   <div class="table-wrap">
     <table>
       <thead>
-        <tr><th>Студент</th><th>Задание</th><th>Неделя</th><th>Сдано</th><th>Файл</th><th>Действие</th></tr>
+        <tr><th><?= __('student') ?></th><th><?= __('assignment_type') ?></th><th><?= __('week') ?></th><th><?= __('submitted_on') ?></th><th><?= __('file_col') ?></th><th><?= __('action_col') ?></th></tr>
       </thead>
       <tbody>
         <?php foreach ($pending as $sub): ?>
@@ -54,11 +54,11 @@ include 'header.php';
           <td style="font-size:.82rem;color:var(--muted)"><?= date('d.m.Y H:i', strtotime($sub['submitted_at'])) ?></td>
           <td>
             <?php if ($sub['file_path']): ?>
-            <a href="/uploads/<?= htmlspecialchars($sub['file_path']) ?>" class="btn btn-secondary btn-sm" target="_blank">📄 Файл</a>
-            <?php else: ?><span style="color:var(--muted);font-size:.82rem">Текст</span><?php endif; ?>
+            <a href="/uploads/<?= htmlspecialchars($sub['file_path']) ?>" class="btn btn-secondary btn-sm" target="_blank">📄 <?= __('file_col') ?></a>
+            <?php else: ?><span style="color:var(--muted);font-size:.82rem"><?= __('text_only') ?></span><?php endif; ?>
           </td>
           <td>
-            <a href="index.php?route=admin_review_detail&sid=<?= $sub['id'] ?>" class="btn btn-primary btn-sm">Проверить</a>
+            <a href="index.php?route=admin_review_detail&sid=<?= $sub['id'] ?>" class="btn btn-primary btn-sm"><?= __('review_btn') ?></a>
           </td>
         </tr>
         <?php endforeach; ?>
@@ -68,17 +68,17 @@ include 'header.php';
 </div>
 <?php else: ?>
 <div class="card" style="margin-bottom:20px">
-  <p style="text-align:center;padding:30px;color:var(--muted)">✅ Все задания проверены!</p>
+  <p style="text-align:center;padding:30px;color:var(--muted)">✅ <?= __('all_assignments_reviewed') ?></p>
 </div>
 <?php endif; ?>
 
 <?php if (!empty($reviewed)): ?>
 <div class="card">
-  <div class="card-title">✅ Последние проверенные</div>
+  <div class="card-title">✅ <?= __('recently_reviewed') ?></div>
   <div class="table-wrap">
     <table>
       <thead>
-        <tr><th>Студент</th><th>Задание</th><th>Статус</th><th>Оценка</th><th>Проверено</th></tr>
+        <tr><th><?= __('student') ?></th><th><?= __('assignment_type') ?></th><th><?= __('status') ?></th><th><?= __('grade') ?></th><th><?= __('reviewed') ?></th></tr>
       </thead>
       <tbody>
         <?php foreach ($reviewed as $sub): ?>

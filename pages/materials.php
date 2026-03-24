@@ -10,14 +10,14 @@ $stmt = $db->prepare("SELECT * FROM weeks WHERE course_id = ? ORDER BY number");
 $stmt->execute([$course['id']]);
 $weeks = $stmt->fetchAll();
 
-$page_title = 'Учебные материалы';
+$page_title = __('materials');
 include 'header.php';
 ?>
 
 <div class="topbar">
   <div>
-    <h1>📖 Учебные материалы</h1>
-    <div class="breadcrumb">Все материалы курса по неделям</div>
+    <h1>📖 <?= __('materials') ?></h1>
+    <div class="breadcrumb"><?= __('all_materials_by_week') ?></div>
   </div>
 </div>
 
@@ -52,7 +52,7 @@ include 'header.php';
         
         <?php if (!empty($materials)): ?>
           <div style="margin-bottom:14px">
-            <div style="font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px">📚 Материалы</div>
+            <div style="font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px">📚 <?= __('materials') ?></div>
             <div class="item-list">
               <?php foreach ($materials as $m): 
                 $type_icons = ['file'=>'📄','video'=>'🎬','audio'=>'🎵','link'=>'🔗','text'=>'📝','interactive'=>'🎯'];
@@ -73,7 +73,7 @@ include 'header.php';
                   <div class="item-info">
                     <div class="item-title"><?= htmlspecialchars($m['title']) ?></div>
                     <div class="item-meta">
-                      <?= ucfirst($m['material_type']) ?>
+                      <?= __( $m['material_type'] === 'interactive' ? 'interactive' : ($m['material_type'] === 'text' ? 'text_pres' : $m['material_type']) ) ?>
                       <?php if ($m['content']): ?>
                         · <?= htmlspecialchars(mb_substr($m['content'], 0, 80)) . (mb_strlen($m['content']) > 80 ? '...' : '') ?>
                       <?php endif; ?>
@@ -88,7 +88,7 @@ include 'header.php';
 
         <?php if (!empty($assignments)): ?>
           <div style="margin-bottom:14px">
-            <div style="font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px">📝 Задания</div>
+            <div style="font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px">📝 <?= __('assignments') ?></div>
             <div class="item-list">
               <?php foreach ($assignments as $a): ?>
               <a href="index.php?route=assignment_detail&aid=<?= $a['id'] ?>" class="item-card">
@@ -96,7 +96,7 @@ include 'header.php';
                 <div class="item-info">
                   <div class="item-title"><?= htmlspecialchars($a['title']) ?></div>
                   <div class="item-meta">
-                    <?= !empty($a['deadline']) ? "Срок: " . date('d.m.Y H:i', strtotime($a['deadline'])) : "Без дедлайна" ?>
+                    <?= !empty($a['deadline']) ? __('due_date') . ": " . date('d.m.Y H:i', strtotime($a['deadline'])) : __('no_deadline') ?>
                   </div>
                 </div>
                 <div class="item-action">→</div>
@@ -108,7 +108,7 @@ include 'header.php';
 
         <?php if (!empty($tests)): ?>
           <div>
-            <div style="font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px">🧪 Тесты</div>
+            <div style="font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px">🧪 <?= __('tests') ?></div>
             <div class="item-list">
               <?php foreach ($tests as $t): 
                 $stmt_q = $db->prepare("SELECT COUNT(*) FROM test_questions WHERE test_id = ?");
@@ -119,7 +119,7 @@ include 'header.php';
                 <div class="item-icon ic-test">🧪</div>
                 <div class="item-info">
                   <div class="item-title"><?= htmlspecialchars($t['title']) ?></div>
-                  <div class="item-meta"><?= $q_count ?> вопросов<?= !empty($t['time_limit']) ? " · " . $t['time_limit'] . " мин" : "" ?></div>
+                  <div class="item-meta"><?= $q_count ?> <?= __('questions_plural') ?><?= !empty($t['time_limit']) ? " · " . $t['time_limit'] . " " . __('minutes') : "" ?></div>
                 </div>
                 <div class="item-action">→</div>
               </a>
@@ -129,14 +129,14 @@ include 'header.php';
         <?php endif; ?>
 
         <?php if (!$has_items): ?>
-          <p style="color:var(--muted);font-size:.88rem;text-align:center;padding:10px">Материалы ещё не добавлены.</p>
+          <p style="color:var(--muted);font-size:.88rem;text-align:center;padding:10px"><?= __('no_data') ?></p>
         <?php endif; ?>
       </div>
     </div>
     <?php endforeach; ?>
 <?php else: ?>
     <div class="card">
-      <p style="text-align:center;color:var(--muted);padding:30px">Учебные материалы ещё не добавлены.</p>
+      <p style="text-align:center;color:var(--muted);padding:30px"><?= __('no_data') ?></p>
     </div>
 <?php endif; ?>
 

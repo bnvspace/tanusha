@@ -22,36 +22,36 @@ $total_subs = $stmt->fetchColumn();
 $stmt = $db->query("SELECT COUNT(*) FROM test_submissions WHERE finished_at IS NOT NULL");
 $test_subs = $stmt->fetchColumn();
 
-$page_title = 'Панель управления';
+$page_title = __('admin_panel');
 include 'header.php';
 ?>
 
 <div class="topbar">
   <div>
-    <h1>📊 Панель управления</h1>
-    <div class="breadcrumb">Добро пожаловать, <?= htmlspecialchars($user['full_name']) ?></div>
+    <h1>📊 <?= __('admin_panel') ?></h1>
+    <div class="breadcrumb"><?= __('welcome_comma') ?> <?= htmlspecialchars($user['full_name']) ?></div>
   </div>
 </div>
 
 <div class="stats-grid">
   <div class="stat-card">
     <div class="stat-icon">👥</div>
-    <div class="stat-label">Студентов</div>
+    <div class="stat-label"><?= __('students_count') ?></div>
     <div class="stat-value"><?= count($students) ?></div>
   </div>
   <div class="stat-card">
     <div class="stat-icon">⏳</div>
-    <div class="stat-label">Ждут проверки</div>
+    <div class="stat-label"><?= __('pending_count') ?></div>
     <div class="stat-value" style="color:var(--warning)"><?= $pending ?></div>
   </div>
   <div class="stat-card">
     <div class="stat-icon">📝</div>
-    <div class="stat-label">Всего ответов</div>
+    <div class="stat-label"><?= __('total_submissions') ?></div>
     <div class="stat-value"><?= $total_subs ?></div>
   </div>
   <div class="stat-card">
     <div class="stat-icon">🧪</div>
-    <div class="stat-label">Тестов пройдено</div>
+    <div class="stat-label"><?= __('tests_passed') ?></div>
     <div class="stat-value"><?= $test_subs ?></div>
   </div>
 </div>
@@ -59,24 +59,24 @@ include 'header.php';
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
   <!-- Быстрые действия -->
   <div class="card">
-    <div class="card-title">⚡ Быстрые действия</div>
+    <div class="card-title">⚡ <?= __('quick_actions') ?></div>
     <div style="display:flex;flex-direction:column;gap:10px">
       <a href="index.php?route=admin_review" class="btn btn-primary">
-        ✏️ Проверить задания
+        ✏️ <?= __('review_assignments_btn') ?>
         <?php if ($pending > 0): ?><span style="background:#fff;color:var(--primary);border-radius:20px;padding:1px 8px;font-size:.78rem;margin-left:4px"><?= $pending ?></span><?php endif; ?>
       </a>
-      <a href="index.php?route=admin_course" class="btn btn-secondary">🛠 Управление курсом</a>
-      <a href="index.php?route=admin_students" class="btn btn-secondary">👥 Все студенты</a>
-      <a href="index.php?route=admin_statistics" class="btn btn-secondary">📈 Статистика</a>
+      <a href="index.php?route=admin_course" class="btn btn-secondary">🛠 <?= __('course_mgmt_btn') ?></a>
+      <a href="index.php?route=admin_students" class="btn btn-secondary">👥 <?= __('all_students_btn') ?></a>
+      <a href="index.php?route=admin_statistics" class="btn btn-secondary">📈 <?= __('statistics_btn') ?></a>
       <?php if ($user['role'] == 'admin'): ?>
-      <a href="index.php?route=admin_users" class="btn btn-secondary">🔑 Пользователи системы</a>
+      <a href="index.php?route=admin_users" class="btn btn-secondary">🔑 <?= __('system_users_btn') ?></a>
       <?php endif; ?>
     </div>
   </div>
 
   <!-- Студенты -->
   <div class="card">
-    <div class="card-title">👥 Студенты</div>
+    <div class="card-title">👥 <?= __('students_list_title') ?></div>
     <?php if (!empty($students)): ?>
     <div style="max-height:250px;overflow-y:auto">
       <?php 
@@ -89,7 +89,7 @@ include 'header.php';
         </div>
         <div style="display:flex;align-items:center;gap:8px">
           <span class="badge <?= $s['is_active'] ? 'badge-success' : 'badge-revision' ?>">
-            <?= $s['is_active'] ? 'Активен' : 'Заблокирован' ?>
+            <?= $s['is_active'] ? __('active') : __('blocked') ?>
           </span>
           <a href="index.php?route=admin_student_detail&uid=<?= $s['id'] ?>" class="btn btn-secondary btn-sm">→</a>
         </div>
@@ -98,11 +98,11 @@ include 'header.php';
     </div>
     <?php if (count($students) > 10): ?>
     <a href="index.php?route=admin_students" style="font-size:.82rem;color:var(--primary);margin-top:10px;display:block">
-      Показать всех (<?= count($students) ?>) →
+      <?= __('show_all') ?> (<?= count($students) ?>) →
     </a>
     <?php endif; ?>
     <?php else: ?>
-    <p style="color:var(--muted);font-size:.88rem">Студентов пока нет.</p>
+    <p style="color:var(--muted);font-size:.88rem"><?= __('no_students_yet') ?></p>
     <?php endif; ?>
   </div>
 </div>

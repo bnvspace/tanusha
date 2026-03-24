@@ -14,10 +14,11 @@ if (!$uid) {
 // Получаем студента
 $stmt = $db->prepare("SELECT * FROM users WHERE id = ? AND role = 'student'");
 $stmt->execute([$uid]);
+$stmt->execute([$uid]);
 $student = $stmt->fetch();
 
 if (!$student) {
-    die("Студент не найден.");
+    die(__('student_not_found'));
 }
 
 // Получаем задания студента
@@ -43,12 +44,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $user['role'] == 'admin' && isset($
     $new_status = $student['is_active'] ? 0 : 1;
     $stmt = $db->prepare("UPDATE users SET is_active = ? WHERE id = ?");
     $stmt->execute([$new_status, $uid]);
-    set_flash('Статус пользователя изменен.', 'success');
+    set_flash(__('status_changed'), 'success');
     header("Location: index.php?route=admin_student_detail&uid=$uid");
     exit;
 }
 
-$page_title = 'Профиль студента';
+$page_title = __('student_profile');
 include 'header.php';
 ?>
 
@@ -57,7 +58,7 @@ include 'header.php';
     <h1>👤 <?= htmlspecialchars($student['full_name']) ?></h1>
     <div class="breadcrumb">@<?= htmlspecialchars($student['username']) ?> · <?= htmlspecialchars($student['email']) ?></div>
   </div>
-  <a href="index.php?route=admin_students" class="btn btn-secondary btn-sm">← Назад</a>
+  <a href="index.php?route=admin_students" class="btn btn-secondary btn-sm"><?= __('back_btn') ?></a>
 </div>
 
 <div style="display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start">
@@ -71,18 +72,18 @@ include 'header.php';
       <div style="color:var(--muted);font-size:.82rem;margin-top:4px"><?= htmlspecialchars($student['email']) ?></div>
       <div style="margin-top:12px">
         <span class="badge <?= $student['is_active'] ? 'badge-reviewed' : 'badge-revision' ?>">
-          <?= $student['is_active'] ? 'Активен' : 'Заблокирован' ?>
+          <?= $student['is_active'] ? __('active') : __('blocked') ?>
         </span>
       </div>
       <div style="font-size:.75rem;color:var(--muted);margin-top:8px">
-        Зарегистрирован <?= date('d.m.Y', strtotime($student['created_at'])) ?>
+        <?= __('registered_on') ?> <?= date('d.m.Y', strtotime($student['created_at'])) ?>
       </div>
     </div>
     <?php if ($user['role'] == 'admin'): ?>
     <form method="POST" style="margin-top:12px">
       <input type="hidden" name="toggle_active" value="1">
-      <button type="submit" class="btn <?= $student['is_active'] ? 'btn-danger' : 'btn-success' ?>" style="width:100%;justify-content:center" onclick="return confirm('Уверены?')">
-        <?= $student['is_active'] ? '🚫 Заблокировать' : '✅ Разблокировать' ?>
+      <button type="submit" class="btn <?= $student['is_active'] ? 'btn-danger' : 'btn-success' ?>" style="width:100%;justify-content:center" onclick="return confirm('<?= __('are_you_sure') ?>')">
+        <?= $student['is_active'] ? __('block_btn_icon') : __('unblock_btn_icon') ?>
       </button>
     </form>
     <?php endif; ?>
@@ -90,11 +91,11 @@ include 'header.php';
 
   <div>
     <div class="card" style="margin-bottom:20px">
-      <div class="card-title">📝 Сданные задания</div>
+      <div class="card-title">📝 <?= __('submitted_assignments_title') ?></div>
       <div class="table-wrap">
         <table>
           <thead>
-            <tr><th>Задание</th><th>Сдано</th><th>Статус</th><th>Оценка</th><th>Комментарий</th></tr>
+            <tr><th><?= __('assignment_type') ?></th><th><?= __('submitted_lbl') ?></th><th><?= __('status') ?></th><th><?= __('grade') ?></th><th><?= __('comment') ?></th></tr>
           </thead>
           <tbody>
             <?php foreach ($submissions as $sub): ?>
@@ -113,7 +114,7 @@ include 'header.php';
             </tr>
             <?php endforeach; ?>
             <?php if (empty($submissions)): ?>
-            <tr><td colspan="5" style="text-align:center;color:var(--muted)">Заданий не сдавал</td></tr>
+            <tr><td colspan="5" style="text-align:center;color:var(--muted)"><?= __('no_assignments_submitted') ?></td></tr>
             <?php endif; ?>
           </tbody>
         </table>
@@ -121,11 +122,11 @@ include 'header.php';
     </div>
 
     <div class="card">
-      <div class="card-title">🧪 Результаты тестов</div>
+      <div class="card-title">🧪 <?= __('test_results_title') ?></div>
       <div class="table-wrap">
         <table>
           <thead>
-            <tr><th>Тест</th><th>Дата</th><th>Результат</th><th>%</th></tr>
+            <tr><th><?= __('test') ?></th><th><?= __('date') ?></th><th><?= __('result') ?></th><th>%</th></tr>
           </thead>
           <tbody>
             <?php foreach ($test_submissions as $ts): 
@@ -139,7 +140,7 @@ include 'header.php';
             </tr>
             <?php endforeach; ?>
             <?php if (empty($test_submissions)): ?>
-            <tr><td colspan="4" style="text-align:center;color:var(--muted)">Тестов не проходил</td></tr>
+            <tr><td colspan="4" style="text-align:center;color:var(--muted)"><?= __('no_tests_passed') ?></td></tr>
             <?php endif; ?>
           </tbody>
         </table>

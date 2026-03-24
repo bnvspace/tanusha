@@ -22,6 +22,15 @@ function set_flash($message, $type = 'info') {
 
 // Обработка маршрутов
 switch ($route) {
+    case 'set_lang':
+        $lang = $_GET['lang'] ?? 'ru';
+        if (in_array($lang, ['ru', 'kk', 'en'])) {
+            $_SESSION['lang'] = $lang;
+        }
+        $ref = $_SERVER['HTTP_REFERER'] ?? 'index.php';
+        header("Location: $ref");
+        exit;
+
     case 'landing':
         include 'pages/landing.php';
         break;

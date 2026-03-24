@@ -94,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     } catch (Exception $e) {
         $db->rollBack();
-        die("Ошибка сохранения результатов: " . $e->getMessage());
+        die(__('test_save_error') . " " . $e->getMessage());
     }
 }
 
@@ -105,7 +105,7 @@ include 'header.php';
 <div class="topbar">
   <div>
     <h1>🧪 <?= htmlspecialchars($test['title']) ?></h1>
-    <div class="breadcrumb">Прохождение теста</div>
+    <div class="breadcrumb"><?= __('taking_test') ?></div>
   </div>
 </div>
 
@@ -114,7 +114,7 @@ include 'header.php';
   <p style="line-height:1.7"><?= htmlspecialchars($test['description']) ?></p>
   <?php if ($test['time_limit']): ?>
   <div style="margin-top:10px;padding:10px 14px;background:#fff9e6;border-radius:8px;border:1px solid #ffe082;font-size:.88rem">
-    ⏱ Ограничение времени: <strong><?= $test['time_limit'] ?> минут</strong>
+    ⏱ <?= __('time_limit_lbl') ?> <strong><?= $test['time_limit'] ?> <?= __('minutes') ?></strong>
     <span id="timer" style="float:right;font-weight:700;color:var(--danger)"></span>
   </div>
   <?php endif; ?>
@@ -124,14 +124,14 @@ include 'header.php';
 <form method="POST" id="test-form">
   <?php foreach ($questions as $index => $q): ?>
   <div class="question-block">
-    <div class="question-num">Вопрос <?= $index + 1 ?> из <?= count($questions) ?></div>
+    <div class="question-num"><?= __('question_num') ?> <?= $index + 1 ?> <?= __('out_of') ?> <?= count($questions) ?></div>
     <div class="question-text"><?= htmlspecialchars($q['question_text']) ?></div>
 
     <?php if ($q['question_type'] == 'text'): ?>
-      <input type="text" name="q_<?= $q['id'] ?>" class="form-control" placeholder="Введите ответ..." required>
+      <input type="text" name="q_<?= $q['id'] ?>" class="form-control" placeholder="<?= __('enter_answer_here') ?>" required>
 
     <?php elseif ($q['question_type'] == 'multiple'): ?>
-      <div style="font-size:.78rem;color:var(--muted);margin-bottom:8px">Выберите все верные варианты</div>
+      <div style="font-size:.78rem;color:var(--muted);margin-bottom:8px"><?= __('select_all_correct') ?></div>
       <?php foreach ($q['options'] as $opt): ?>
       <label class="option-label">
         <input type="checkbox" name="q_<?= $q['id'] ?>[]" value="<?= $opt['id'] ?>">
@@ -151,10 +151,10 @@ include 'header.php';
   <?php endforeach; ?>
 
   <div style="display:flex;gap:12px;margin-top:10px">
-    <button type="submit" class="btn btn-primary" onclick="return confirm('Завершить тест и отправить ответы?')">
-      ✅ Завершить тест
+    <button type="submit" class="btn btn-primary" onclick="return confirm('<?= __('confirm_finish_test') ?>')">
+      ✅ <?= __('finish_test') ?>
     </button>
-    <a href="index.php?route=tests" class="btn btn-secondary">Отмена</a>
+    <a href="index.php?route=tests" class="btn btn-secondary"><?= __('cancel_btn') ?></a>
   </div>
 </form>
 

@@ -40,14 +40,14 @@ foreach ($weeks as $week) {
     }
 }
 
-$page_title = 'Тесты';
+$page_title = __('tests');
 include 'header.php';
 ?>
 
 <div class="topbar">
   <div>
-    <h1>🧪 Тесты</h1>
-    <div class="breadcrumb">Доступные тесты курса</div>
+    <h1>🧪 <?= __('tests') ?></h1>
+    <div class="breadcrumb"><?= __('available_tests') ?></div>
   </div>
 </div>
 
@@ -61,11 +61,11 @@ include 'header.php';
   <div style="border-bottom:1px solid var(--border);padding:16px 0;<?= $is_last ? 'border-bottom:none;' : '' ?>">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
       <div>
-        <div style="font-size:.75rem;color:var(--muted);margin-bottom:4px">Неделя <?= $row['week']['number'] ?></div>
+        <div style="font-size:.75rem;color:var(--muted);margin-bottom:4px"><?= __('week') ?> <?= $row['week']['number'] ?></div>
         <div style="font-weight:700;font-size:1rem"><?= htmlspecialchars($t['title']) ?></div>
         <div style="font-size:.8rem;color:var(--muted);margin-top:4px;display:flex;gap:14px">
-          <span>❓ <?= $row['q_count'] ?> вопросов</span>
-          <?php if ($t['time_limit']): ?><span>⏱ <?= $t['time_limit'] ?> мин</span><?php endif; ?>
+          <span>❓ <?= $row['q_count'] ?> <?= __('questions_plural') ?></span>
+          <?php if ($t['time_limit']): ?><span>⏱ <?= $t['time_limit'] ?> <?= __('minutes') ?></span><?php endif; ?>
           <?php if ($t['description']): ?><span><?= htmlspecialchars(mb_substr($t['description'], 0, 60)) . (mb_strlen($t['description']) > 60 ? '...' : '') ?></span><?php endif; ?>
         </div>
       </div>
@@ -73,16 +73,16 @@ include 'header.php';
         <?php if ($tsub): 
             $pct = ($tsub['max_score'] > 0) ? intval($tsub['score'] / $tsub['max_score'] * 100) : 0;
         ?>
-          <div style="text-align:center">
-            <div class="grade-circle <?= $pct >= 75 ? 'grade-high' : ($pct >= 50 ? 'grade-mid' : 'grade-low') ?>">
-              <?= $pct ?>%
-            </div>
-            <div style="font-size:.72rem;color:var(--muted);margin-top:3px"><?= $tsub['score'] ?>/<?= $tsub['max_score'] ?></div>
-          </div>
-          <a href="index.php?route=test_result&tid=<?= $t['id'] ?>&sid=<?= $tsub['id'] ?>" class="btn btn-secondary btn-sm">Результат</a>
+           <div style="text-align:center">
+             <div class="grade-circle <?= $pct >= 75 ? 'grade-high' : ($pct >= 50 ? 'grade-mid' : 'grade-low') ?>">
+               <?= $pct ?>%
+             </div>
+             <div style="font-size:.72rem;color:var(--muted);margin-top:3px"><?= $tsub['score'] ?>/<?= $tsub['max_score'] ?></div>
+           </div>
+           <a href="index.php?route=test_result&tid=<?= $t['id'] ?>&sid=<?= $tsub['id'] ?>" class="btn btn-secondary btn-sm"><?= __('test_result_btn') ?></a>
         <?php else: ?>
-          <span class="badge badge-secondary">Не пройден</span>
-          <a href="index.php?route=test_take&tid=<?= $t['id'] ?>" class="btn btn-primary btn-sm">Начать тест →</a>
+           <span class="badge badge-secondary"><?= __('not_passed') ?></span>
+           <a href="index.php?route=test_take&tid=<?= $t['id'] ?>" class="btn btn-primary btn-sm"><?= __('start_test') ?> →</a>
         <?php endif; ?>
       </div>
     </div>
@@ -91,7 +91,7 @@ include 'header.php';
 </div>
 <?php else: ?>
 <div class="card">
-  <p style="text-align:center;color:var(--muted);padding:40px">Тестов пока нет.</p>
+  <p style="text-align:center;color:var(--muted);padding:40px"><?= __('no_data') ?></p>
 </div>
 <?php endif; ?>
 

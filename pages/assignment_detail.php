@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$aid, $user['id'], $text_answer, $file_path]);
     }
     
-    set_flash('Ответ успешно отправлен!', 'success');
+    set_flash(__('submit_success'), 'success');
     header("Location: index.php?route=assignment_detail&aid=$aid");
     exit;
 }
@@ -61,41 +61,41 @@ include 'header.php';
 <div class="topbar">
   <div>
     <h1>📝 <?= htmlspecialchars($assignment['title']) ?></h1>
-    <div class="breadcrumb">Неделя <?= $assignment['week_number'] ?> · <?= htmlspecialchars($assignment['week_title']) ?></div>
+    <div class="breadcrumb"><?= __('week') ?> <?= $assignment['week_number'] ?> · <?= htmlspecialchars($assignment['week_title']) ?></div>
   </div>
-  <a href="index.php?route=assignments" class="btn btn-secondary btn-sm">← Все задания</a>
+  <a href="index.php?route=assignments" class="btn btn-secondary btn-sm"><?= __('back_to_assignments') ?></a>
 </div>
 
 <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start">
   <!-- Описание и форма сдачи -->
   <div>
     <div class="card" style="margin-bottom:20px">
-      <div class="card-title">📋 Описание задания</div>
-      <div style="line-height:1.8;white-space:pre-line"><?= htmlspecialchars($assignment['description'] ?? 'Описание не указано.') ?></div>
+      <div class="card-title">📋 <?= __('assignment_desc') ?></div>
+      <div style="line-height:1.8;white-space:pre-line"><?= htmlspecialchars($assignment['description'] ?? __('no_desc')) ?></div>
       <?php if ($assignment['deadline']): 
           $deadline = new DateTime($assignment['deadline']);
       ?>
       <div style="margin-top:16px;padding:12px;background:#fff9e6;border-radius:8px;border:1px solid #ffe082;font-size:.88rem">
-        ⏰ <strong>Дедлайн:</strong> <?= $deadline->format('d.m.Y, H:i') ?>
+        ⏰ <strong><?= __('due_date') ?>:</strong> <?= $deadline->format('d.m.Y, H:i') ?>
       </div>
       <?php endif; ?>
     </div>
 
     <?php if (!$submission || $submission['status'] != 'reviewed'): ?>
     <div class="card">
-      <div class="card-title">📤 Отправить ответ</div>
+      <div class="card-title">📤 <?= __('submit_work') ?></div>
       <form method="POST" enctype="multipart/form-data">
         <div class="form-group">
-          <label class="form-label">Текстовый ответ <span style="font-weight:400;color:var(--muted)">(опционально)</span></label>
+          <label class="form-label"><?= __('text_answer_optional') ?></label>
           <textarea name="text_answer" class="form-control" rows="5"
-            placeholder="Введите ваш ответ здесь..."><?= htmlspecialchars($submission['text_answer'] ?? '') ?></textarea>
+            placeholder="<?= __('enter_answer_here') ?>"><?= htmlspecialchars($submission['text_answer'] ?? '') ?></textarea>
         </div>
         <div class="form-group">
-          <label class="form-label">Прикрепить файл <span style="font-weight:400;color:var(--muted)">(PDF, Word, txt и др.)</span></label>
+          <label class="form-label"><?= __('attach_file_optional') ?></label>
           <input type="file" name="file" class="form-control">
-          <div class="form-hint">Поддерживаемые форматы: PDF, DOC, DOCX, TXT, PPT, XLSX, изображения, ZIP. Макс. 50 МБ.</div>
+          <div class="form-hint"><?= __('file_formats_hint') ?></div>
         </div>
-        <button type="submit" class="btn btn-primary">📤 Отправить ответ</button>
+        <button type="submit" class="btn btn-primary">📤 <?= __('submit_work') ?></button>
       </form>
     </div>
     <?php endif; ?>
@@ -104,38 +104,38 @@ include 'header.php';
   <!-- Статус -->
   <div>
     <div class="card">
-      <div class="card-title">📊 Статус</div>
+      <div class="card-title">📊 <?= __('status') ?? 'Статус' ?></div>
       <?php if ($submission): ?>
         <div style="text-align:center;padding:16px 0">
           <?php if ($submission['status'] == 'pending'): ?>
             <div style="font-size:2.5rem">⏳</div>
-            <div style="font-weight:700;margin-top:8px">Ожидает проверки</div>
+            <div style="font-weight:700;margin-top:8px"><?= __('pending') ?></div>
             <div style="font-size:.82rem;color:var(--muted);margin-top:4px">
-              Сдано <?= date('d.m.Y H:i', strtotime($submission['submitted_at'])) ?>
+              <?= __('submitted_on') ?> <?= date('d.m.Y H:i', strtotime($submission['submitted_at'])) ?>
             </div>
           <?php elseif ($submission['status'] == 'reviewed'): ?>
             <div style="font-size:2.5rem">✅</div>
-            <div style="font-weight:700;margin-top:8px">Проверено</div>
+            <div style="font-weight:700;margin-top:8px"><?= __('reviewed') ?></div>
             <?php if ($submission['grade'] !== null): ?>
             <div style="margin-top:16px">
               <div class="grade-circle <?= $submission['grade'] >= 75 ? 'grade-high' : ($submission['grade'] >= 50 ? 'grade-mid' : 'grade-low') ?>" style="margin:0 auto">
                 <?= $submission['grade'] ?>
               </div>
-              <div style="font-size:.82rem;color:var(--muted);margin-top:4px">из 100 баллов</div>
+              <div style="font-size:.82rem;color:var(--muted);margin-top:4px"><?= __('out_of_100') ?></div>
             </div>
             <?php endif; ?>
             <?php if ($submission['comment']): ?>
             <div style="margin-top:16px;text-align:left;background:#f4f6fb;border-radius:8px;padding:12px;font-size:.88rem">
-              <strong>💬 Комментарий преподавателя:</strong><br>
+              <strong>💬 <?= __('teacher_comment') ?>:</strong><br>
               <p style="margin-top:6px;line-height:1.6"><?= htmlspecialchars($submission['comment']) ?></p>
             </div>
             <?php endif; ?>
           <?php elseif ($submission['status'] == 'revision'): ?>
             <div style="font-size:2.5rem">🔄</div>
-            <div style="font-weight:700;margin-top:8px;color:var(--danger)">Требует доработки</div>
+            <div style="font-weight:700;margin-top:8px;color:var(--danger)"><?= __('needs_revision') ?></div>
             <?php if ($submission['comment']): ?>
             <div style="margin-top:12px;text-align:left;background:#fdf0f0;border-radius:8px;padding:12px;font-size:.88rem">
-              <strong>💬 Комментарий:</strong><br>
+              <strong>💬 <?= __('comment') ?>:</strong><br>
               <p style="margin-top:6px;line-height:1.6"><?= htmlspecialchars($submission['comment']) ?></p>
             </div>
             <?php endif; ?>
@@ -143,16 +143,16 @@ include 'header.php';
         </div>
         <?php if ($submission['file_path']): ?>
         <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:12px">
-          <div style="font-size:.8rem;color:var(--muted);margin-bottom:6px">Прикреплённый файл:</div>
+          <div style="font-size:.8rem;color:var(--muted);margin-bottom:6px"><?= __('attached_file') ?>:</div>
           <a href="/uploads/<?= htmlspecialchars($submission['file_path']) ?>" class="btn btn-secondary btn-sm" target="_blank">
-            📄 Скачать файл
+            📄 <?= __('download_file') ?>
           </a>
         </div>
         <?php endif; ?>
       <?php else: ?>
         <div style="text-align:center;padding:20px;color:var(--muted)">
           <div style="font-size:2rem">📭</div>
-          <p style="margin-top:8px;font-size:.88rem">Ответ ещё не отправлен</p>
+          <p style="margin-top:8px;font-size:.88rem"><?= __('not_submitted_yet') ?></p>
         </div>
       <?php endif; ?>
     </div>
