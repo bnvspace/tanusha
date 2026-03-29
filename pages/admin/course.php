@@ -60,7 +60,13 @@ foreach ($weeks as &$week) {
         $stmt_q->execute([$t['id']]);
         $t['q_count'] = $stmt_q->fetchColumn();
     }
+    unset($t);
+
+    $stmt_d = $db->prepare("SELECT COUNT(*) FROM discussion_topics WHERE week_id = ?");
+    $stmt_d->execute([$week['id']]);
+    $week['discussion_topics_count'] = (int) $stmt_d->fetchColumn();
 }
+unset($week);
 
 $page_title = __('course_mgmt');
 include 'header.php';
@@ -117,11 +123,19 @@ include 'header.php';
       <div class="week-num"><?= $week['number'] ?></div>
       <?= htmlspecialchars($week['title']) ?>
     </div>
-    <form method="POST" onsubmit="return confirm('<?= __('confirm_delete_week') ?>')">
-      <input type="hidden" name="action" value="delete_week">
-      <input type="hidden" name="week_id" value="<?= $week['id'] ?>">
-      <button type="submit" class="btn btn-danger btn-sm"><?= __('delete_week_btn') ?></button>
-    </form>
+    <div class="forum-week-actions">
+      <a href="index.php?route=week_discussion&wid=<?= $week['id'] ?>&from=admin_course" class="btn btn-secondary btn-sm">
+        💬 <?= __('open_discussion') ?>
+        <?php if (!empty($week['discussion_topics_count'])): ?>
+          <span class="forum-count-badge"><?= $week['discussion_topics_count'] ?></span>
+        <?php endif; ?>
+      </a>
+      <form method="POST" onsubmit="return confirm('<?= __('confirm_delete_week') ?>')">
+        <input type="hidden" name="action" value="delete_week">
+        <input type="hidden" name="week_id" value="<?= $week['id'] ?>">
+        <button type="submit" class="btn btn-danger btn-sm"><?= __('delete_week_btn') ?></button>
+      </form>
+    </div>
   </div>
   <div class="week-body" style="display:block">
     <!-- Материалы -->

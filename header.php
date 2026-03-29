@@ -11,6 +11,7 @@ $route = $_GET['route'] ?? 'landing';
   <title><?= $page_title ?? 'Портал' ?> — ИЯ для теплоэнергетиков</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
   <link rel="stylesheet" href="/static/css/style.css">
   <?= $extra_css ?? '' ?>
 </head>
@@ -23,7 +24,7 @@ $route = $_GET['route'] ?? 'landing';
       <div class="logo-sub"><?= __('app_sub') ?></div>
     </div>
     
-    <div class="lang-switcher" style="display:flex;gap:12px;padding:0 20px 20px;font-size:0.75rem;font-weight:600">
+    <div class="lang-switcher" style="display:flex;gap:12px;padding:8px 20px 20px;font-size:0.75rem;font-weight:600">
       <a href="index.php?route=set_lang&lang=ru" style="color:<?= $_SESSION['lang'] == 'ru' ? 'var(--primary)' : 'var(--muted)' ?>">RU</a>
       <a href="index.php?route=set_lang&lang=kk" style="color:<?= $_SESSION['lang'] == 'kk' ? 'var(--primary)' : 'var(--muted)' ?>">KK</a>
       <a href="index.php?route=set_lang&lang=en" style="color:<?= $_SESSION['lang'] == 'en' ? 'var(--primary)' : 'var(--muted)' ?>">EN</a>
@@ -42,7 +43,7 @@ $route = $_GET['route'] ?? 'landing';
           <a href="/index.php?route=admin_review" class="<?= in_array($route, ['admin_review', 'admin_review_detail']) ? 'active' : '' ?>">
             ✏️ <?= __('review') ?>
           </a>
-          <a href="/index.php?route=admin_course" class="<?= (strpos($route, 'course') !== false || strpos($route, 'material') !== false || strpos($route, 'assignment') !== false || strpos($route, 'test') !== false) ? 'active' : '' ?>">
+          <a href="/index.php?route=admin_course" class="<?= (strpos($route, 'course') !== false || strpos($route, 'material') !== false || strpos($route, 'assignment') !== false || strpos($route, 'test') !== false || strpos($route, 'discussion') !== false) ? 'active' : '' ?>">
             📚 <?= __('course_mgmt') ?>
           </a>
           <a href="/index.php?route=admin_statistics" class="<?= $route == 'admin_statistics' ? 'active' : '' ?>">
@@ -58,7 +59,7 @@ $route = $_GET['route'] ?? 'landing';
           <a href="/index.php?route=dashboard" class="<?= $route == 'dashboard' ? 'active' : '' ?>">
             🏠 <?= __('dashboard') ?>
           </a>
-          <a href="/index.php?route=materials" class="<?= $route == 'materials' ? 'active' : '' ?>">
+          <a href="/index.php?route=materials" class="<?= in_array($route, ['materials', 'week_discussion', 'discussion_topic']) ? 'active' : '' ?>">
             📖 <?= __('materials') ?>
           </a>
           <a href="/index.php?route=assignments" class="<?= in_array($route, ['assignments', 'assignment_detail']) ? 'active' : '' ?>">

@@ -1,9 +1,6 @@
 <?php
 // pages/dashboard.php
 
-
-
-// Данные курса
 $stmt = $db->query("SELECT * FROM courses LIMIT 1");
 $course = $stmt->fetch();
 
@@ -11,7 +8,45 @@ if (!$course) {
     die("Курс не найден.");
 }
 
-// ... (логика без изменений)
+$stmt = $db->prepare("SELECT * FROM weeks WHERE course_id = ? ORDER BY number");
+$stmt->execute([$course['id']]);
+$weeks = $stmt->fetchAll();
+
+$stmt = $db->prepare("SELECT COUNT(DISTINCT assignment_id) FROM submissions WHERE user_id = ?");
+$stmt->execute([$user['id']]);
+$done_assignments = (int) $stmt->fetchColumn();
+
+$stmt = $db->prepare("SELECT COUNT(DISTINCT test_id) FROM test_submissions WHERE user_id = ? AND finished_at IS NOT NULL");
+$stmt->execute([$user['id']]);
+$done_tests = (int) $stmt->fetchColumn();
+
+foreach ($weeks as &$week) {
+    $stmt = $db->prepare(
+        "SELECT COUNT(*) FROM materials
+         WHERE week_id = ? AND visible = 1 AND (open_date IS NULL OR open_date <= CURRENT_TIMESTAMP)"
+    );
+    $stmt->execute([$week['id']]);
+    $week['materials_count'] = (int) $stmt->fetchColumn();
+
+    $stmt = $db->prepare(
+        "SELECT COUNT(*) FROM assignments
+         WHERE week_id = ? AND visible = 1 AND (open_date IS NULL OR open_date <= CURRENT_TIMESTAMP)"
+    );
+    $stmt->execute([$week['id']]);
+    $week['assignments_count'] = (int) $stmt->fetchColumn();
+
+    $stmt = $db->prepare(
+        "SELECT COUNT(*) FROM tests
+         WHERE week_id = ? AND visible = 1 AND (open_date IS NULL OR open_date <= CURRENT_TIMESTAMP)"
+    );
+    $stmt->execute([$week['id']]);
+    $week['tests_count'] = (int) $stmt->fetchColumn();
+
+    $stmt = $db->prepare("SELECT COUNT(*) FROM discussion_topics WHERE week_id = ?");
+    $stmt->execute([$week['id']]);
+    $week['discussion_topics_count'] = (int) $stmt->fetchColumn();
+}
+unset($week);
 
 $page_title = __('dashboard');
 include 'header.php';
@@ -74,18 +109,24 @@ include 'header.php';
 <div class="card">
   <div class="card-title">📅 <?= __('course_structure') ?></div>
   <?php if (!empty($weeks)): ?>
-    <?php foreach ($weeks as $week): 
-        // ... (логика без изменений)
-    ?>
+    <?php foreach ($weeks as $week): ?>
     <div class="week-block">
-      <div class="week-header" style="justify-content:space-between">
+      <div class="week-header forum-week-header" style="justify-content:space-between">
         <div class="week-title">
           <div class="week-num"><?= $week['number'] ?></div>
           <?= htmlspecialchars($week['title']) ?>
         </div>
-        <span style="font-size:.8rem;color:var(--muted)">
-          <?= $mat_count ?> <?= __('mats_unit') ?> · <?= $asn_count ?> <?= __('asns_unit') ?> · <?= $tst_count ?> <?= __('tests_unit') ?>
-        </span>
+        <div class="forum-week-actions">
+          <span style="font-size:.8rem;color:var(--muted)">
+            <?= $week['materials_count'] ?> <?= __('mats_unit') ?> · <?= $week['assignments_count'] ?> <?= __('asns_unit') ?> · <?= $week['tests_count'] ?> <?= __('tests_unit') ?>
+          </span>
+          <a href="index.php?route=week_discussion&wid=<?= $week['id'] ?>&from=dashboard" class="btn btn-secondary btn-sm">
+            💬 <?= __('open_discussion') ?>
+            <?php if (!empty($week['discussion_topics_count'])): ?>
+              <span class="forum-count-badge"><?= $week['discussion_topics_count'] ?></span>
+            <?php endif; ?>
+          </a>
+        </div>
       </div>
     </div>
     <?php endforeach; ?>

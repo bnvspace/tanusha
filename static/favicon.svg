@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title>IPRE Portal</title>
+  <defs>
+    <linearGradient id="bg" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1a6fc4"/>
+      <stop offset="1" stop-color="#0e4d8a"/>
+    </linearGradient>
+  </defs>
+  <rect x="6" y="6" width="52" height="52" rx="14" fill="url(#bg)"/>
+  <path d="M20 18h16a8 8 0 0 1 8 8v20H28a8 8 0 0 0-8 8V18z" fill="#ffffff" opacity="0.96"/>
+  <path d="M44 18H28a8 8 0 0 0-8 8v20h16a8 8 0 0 1 8 8V18z" fill="#d8ebff" opacity="0.9"/>
+  <path d="M26 29h12M26 35h12M26 41h8" stroke="#1a6fc4" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

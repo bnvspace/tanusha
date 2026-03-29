@@ -118,6 +118,16 @@ switch ($route) {
         include 'pages/materials.php';
         break;
 
+    case 'week_discussion':
+        $user = login_required(['student', 'teacher', 'admin']);
+        include 'pages/week_discussion.php';
+        break;
+
+    case 'discussion_topic':
+        $user = login_required(['student', 'teacher', 'admin']);
+        include 'pages/discussion_topic.php';
+        break;
+
     case 'assignments':
         $user = login_required(['student']);
         include 'pages/assignments.php';

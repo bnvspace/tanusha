@@ -8,6 +8,7 @@ function bootstrap_database(PDO $db): void {
 
     try {
         bootstrap_create_schema($db);
+        bootstrap_migrate_existing_schema($db);
         bootstrap_seed_course($db);
         bootstrap_seed_default_users($db);
         bootstrap_migrate_legacy_default_passwords($db);
@@ -40,6 +41,31 @@ function bootstrap_create_schema(PDO $db): void {
             number INTEGER NOT NULL,
             title VARCHAR(256) NOT NULL,
             FOREIGN KEY(course_id) REFERENCES courses(id) ON DELETE CASCADE
+        )
+        SQL,
+        <<<SQL
+        CREATE TABLE IF NOT EXISTS discussion_topics (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            week_id INTEGER NOT NULL,
+            user_id INTEGER NOT NULL,
+            title VARCHAR(255) NOT NULL,
+            body TEXT,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(week_id) REFERENCES weeks(id) ON DELETE CASCADE,
+            FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+        SQL,
+        <<<SQL
+        CREATE TABLE IF NOT EXISTS discussion_comments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            topic_id INTEGER NOT NULL,
+            user_id INTEGER NOT NULL,
+            comment_text TEXT,
+            image_path VARCHAR(512),
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(topic_id) REFERENCES discussion_topics(id) ON DELETE CASCADE,
+            FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
         )
         SQL,
         <<<SQL
@@ -100,6 +126,8 @@ function bootstrap_create_schema(PDO $db): void {
             FOREIGN KEY(reviewed_by) REFERENCES users(id)
         )
         SQL,
+        'CREATE INDEX IF NOT EXISTS idx_discussion_topics_week_id ON discussion_topics(week_id)',
+        'CREATE INDEX IF NOT EXISTS idx_discussion_comments_topic_id ON discussion_comments(topic_id)',
         <<<SQL
         CREATE TABLE IF NOT EXISTS tests (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -163,6 +191,23 @@ function bootstrap_create_schema(PDO $db): void {
     foreach ($statements as $sql) {
         $db->exec($sql);
     }
+}
+
+function bootstrap_migrate_existing_schema(PDO $db): void {
+    bootstrap_add_column_if_missing($db, 'weeks', 'discussion_description', 'TEXT');
+}
+
+function bootstrap_add_column_if_missing(PDO $db, string $table, string $column, string $definition): void {
+    $stmt = $db->query("PRAGMA table_info($table)");
+    $columns = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    foreach ($columns as $existingColumn) {
+        if (($existingColumn['name'] ?? '') === $column) {
+            return;
+        }
+    }
+
+    $db->exec("ALTER TABLE $table ADD COLUMN $column $definition");
 }
 
 function bootstrap_seed_course(PDO $db): void {
