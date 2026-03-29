@@ -149,49 +149,47 @@ include 'header.php';
   <?php endif; ?>
 </div>
 
-<div class="forum-layout">
-  <div class="card">
-    <div class="card-title"><?= __('comments') ?></div>
-    <?php if (!empty($comments)): ?>
-      <div class="comment-thread">
-        <?php foreach ($comments as $comment): ?>
-          <div class="comment-card">
-            <div class="comment-header">
-              <div class="comment-author"><?= htmlspecialchars($comment['author_name']) ?></div>
-              <div class="comment-date"><?= date('d.m.Y H:i', strtotime($comment['created_at'])) ?></div>
-            </div>
-            <?php if (!empty($comment['comment_text'])): ?>
-              <div class="comment-body"><?= nl2br(htmlspecialchars($comment['comment_text'])) ?></div>
-            <?php endif; ?>
-            <?php if (!empty($comment['image_path'])): ?>
-              <a href="/uploads/<?= htmlspecialchars($comment['image_path']) ?>" target="_blank" class="comment-image-link">
-                <img src="/uploads/<?= htmlspecialchars($comment['image_path']) ?>" alt="comment image" class="comment-image">
-              </a>
-            <?php endif; ?>
+<div class="card" style="margin-bottom:20px">
+  <div class="card-title"><?= __('comments') ?></div>
+  <?php if (!empty($comments)): ?>
+    <div class="comment-thread">
+      <?php foreach ($comments as $comment): ?>
+        <div class="comment-card">
+          <div class="comment-header">
+            <div class="comment-author"><?= htmlspecialchars($comment['author_name']) ?></div>
+            <div class="comment-date"><?= date('d.m.Y H:i', strtotime($comment['created_at'])) ?></div>
           </div>
-        <?php endforeach; ?>
-      </div>
-    <?php else: ?>
-      <p class="forum-empty-note"><?= __('no_comments_yet') ?></p>
-    <?php endif; ?>
-  </div>
+          <?php if (!empty($comment['comment_text'])): ?>
+            <div class="comment-body"><?= nl2br(htmlspecialchars($comment['comment_text'])) ?></div>
+          <?php endif; ?>
+          <?php if (!empty($comment['image_path'])): ?>
+            <a href="/uploads/<?= htmlspecialchars($comment['image_path']) ?>" target="_blank" class="comment-image-link">
+              <img src="/uploads/<?= htmlspecialchars($comment['image_path']) ?>" alt="comment image" class="comment-image">
+            </a>
+          <?php endif; ?>
+        </div>
+      <?php endforeach; ?>
+    </div>
+  <?php else: ?>
+    <p class="forum-empty-note"><?= __('no_comments_yet') ?></p>
+  <?php endif; ?>
+</div>
 
-  <div class="card">
-    <div class="card-title"><?= __('new_comment') ?></div>
-    <form method="POST" enctype="multipart/form-data">
-      <input type="hidden" name="action" value="add_comment">
-      <div class="form-group">
-        <label class="form-label"><?= __('comment_text_label') ?></label>
-        <textarea name="comment_text" class="form-control" rows="5" placeholder="<?= __('comment_text_placeholder') ?>"></textarea>
-      </div>
-      <div class="form-group">
-        <label class="form-label"><?= __('attach_image_optional') ?></label>
-        <input type="file" name="comment_image" class="form-control" accept=".png,.jpg,.jpeg,.gif,.webp,image/*">
-        <div class="form-hint"><?= __('comment_image_hint') ?></div>
-      </div>
-      <button type="submit" class="btn btn-primary"><?= __('add_comment') ?></button>
-    </form>
-  </div>
+<div class="card">
+  <div class="card-title"><?= __('new_comment') ?></div>
+  <form method="POST" enctype="multipart/form-data">
+    <input type="hidden" name="action" value="add_comment">
+    <div class="form-group">
+      <label class="form-label"><?= __('comment_text_label') ?></label>
+      <textarea name="comment_text" class="form-control" rows="5" placeholder="<?= __('comment_text_placeholder') ?>"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label"><?= __('attach_image_optional') ?></label>
+      <input type="file" name="comment_image" class="form-control" accept=".png,.jpg,.jpeg,.gif,.webp,image/*">
+      <div class="form-hint"><?= __('comment_image_hint') ?></div>
+    </div>
+    <button type="submit" class="btn btn-primary"><?= __('add_comment') ?></button>
+  </form>
 </div>
 
 <?php include 'footer.php'; ?>
