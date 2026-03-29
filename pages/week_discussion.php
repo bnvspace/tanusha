@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $topicId = (int) $db->lastInsertId();
         set_flash(__('topic_created'), 'success');
-        header($topicBaseUrl . "&topic_id=$topicId");
+        header("Location: " . $topicBaseUrl . "&topic_id=$topicId");
         exit;
     }
 }
