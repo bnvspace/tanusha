@@ -3,10 +3,15 @@ portal.db
 portal.db-journal
 portal.db-wal
 portal.db-shm
+storage/*.db
+storage/*.db-journal
+storage/*.db-wal
+storage/*.db-shm
 
 # Загрузки
 uploads/*
 !uploads/.gitkeep
+!storage/.gitkeep
 
 # Временные файлы и логи
 *.log
