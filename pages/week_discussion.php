@@ -113,51 +113,49 @@ include 'header.php';
   <?php endif; ?>
 </div>
 
-<div class="forum-layout">
-  <div class="card">
-    <div class="card-title"><?= __('create_topic') ?></div>
-    <form method="POST">
-      <input type="hidden" name="action" value="create_topic">
-      <div class="form-group">
-        <label class="form-label"><?= __('topic_title') ?></label>
-        <input type="text" name="title" class="form-control" placeholder="<?= __('topic_title_placeholder') ?>" required>
-      </div>
-      <div class="form-group">
-        <label class="form-label"><?= __('topic_message') ?></label>
-        <textarea name="body" class="form-control" rows="5" placeholder="<?= __('topic_message_placeholder') ?>"></textarea>
-      </div>
-      <button type="submit" class="btn btn-primary"><?= __('create_topic') ?></button>
-    </form>
-  </div>
+<div class="card" style="margin-bottom:20px">
+  <div class="card-title"><?= __('discussion_topics') ?></div>
 
-  <div class="card">
-    <div class="card-title"><?= __('discussion_topics') ?></div>
-
-    <?php if (!empty($topics)): ?>
-      <div class="forum-topic-list">
-        <?php foreach ($topics as $topic): ?>
-          <div class="forum-topic-row">
-            <div class="forum-topic-main">
-              <div class="forum-topic-title"><?= htmlspecialchars($topic['title']) ?></div>
-              <div class="forum-topic-meta">
-                <span><?= __('topic_author') ?>: <?= htmlspecialchars($topic['author_name']) ?></span>
-                <span><?= __('comments_count') ?>: <?= (int) $topic['comment_count'] ?></span>
-                <span><?= __('last_activity') ?>: <?= date('d.m.Y H:i', strtotime($topic['last_activity'])) ?></span>
-              </div>
-              <?php if (!empty($topic['body'])): ?>
-                <div class="forum-topic-snippet">
-                  <?= htmlspecialchars(mb_substr($topic['body'], 0, 180)) ?><?= mb_strlen($topic['body']) > 180 ? '...' : '' ?>
-                </div>
-              <?php endif; ?>
+  <?php if (!empty($topics)): ?>
+    <div class="forum-topic-list">
+      <?php foreach ($topics as $topic): ?>
+        <div class="forum-topic-row">
+          <div class="forum-topic-main">
+            <div class="forum-topic-title"><?= htmlspecialchars($topic['title']) ?></div>
+            <div class="forum-topic-meta">
+              <span><?= __('topic_author') ?>: <?= htmlspecialchars($topic['author_name']) ?></span>
+              <span><?= __('comments_count') ?>: <?= (int) $topic['comment_count'] ?></span>
+              <span><?= __('last_activity') ?>: <?= date('d.m.Y H:i', strtotime($topic['last_activity'])) ?></span>
             </div>
-            <a href="<?= $topicBaseUrl ?>&topic_id=<?= $topic['id'] ?>" class="btn btn-secondary btn-sm"><?= __('open_topic') ?></a>
+            <?php if (!empty($topic['body'])): ?>
+              <div class="forum-topic-snippet">
+                <?= htmlspecialchars(mb_substr($topic['body'], 0, 180)) ?><?= mb_strlen($topic['body']) > 180 ? '...' : '' ?>
+              </div>
+            <?php endif; ?>
           </div>
-        <?php endforeach; ?>
-      </div>
-    <?php else: ?>
-      <p class="forum-empty-note"><?= __('forum_topics_empty') ?></p>
-    <?php endif; ?>
-  </div>
+          <a href="<?= $topicBaseUrl ?>&topic_id=<?= $topic['id'] ?>" class="btn btn-secondary btn-sm"><?= __('open_topic') ?></a>
+        </div>
+      <?php endforeach; ?>
+    </div>
+  <?php else: ?>
+    <p class="forum-empty-note"><?= __('forum_topics_empty') ?></p>
+  <?php endif; ?>
+</div>
+
+<div class="card">
+  <div class="card-title"><?= __('create_topic') ?></div>
+  <form method="POST">
+    <input type="hidden" name="action" value="create_topic">
+    <div class="form-group">
+      <label class="form-label"><?= __('topic_title') ?></label>
+      <input type="text" name="title" class="form-control" placeholder="<?= __('topic_title_placeholder') ?>" required>
+    </div>
+    <div class="form-group">
+      <label class="form-label"><?= __('topic_message') ?></label>
+      <textarea name="body" class="form-control" rows="5" placeholder="<?= __('topic_message_placeholder') ?>"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary"><?= __('create_topic') ?></button>
+  </form>
 </div>
 
 <?php include 'footer.php'; ?>
