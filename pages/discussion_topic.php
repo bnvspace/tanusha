@@ -67,6 +67,15 @@ if (!$topic) {
     die(__('topic_not_found'));
 }
 
+$topicUrl = "index.php?route=discussion_topic&topic_id=$topicId";
+if ($from !== '') {
+    $topicUrl .= '&from=' . urlencode($from);
+}
+
+$editTopicUrl = $topicUrl . '&edit=1';
+$canEditTopic = (int) $topic['user_id'] === (int) $user['id'];
+$isEditMode = $canEditTopic && (($_GET['edit'] ?? '0') === '1');
+
 $discussionUrl = "index.php?route=week_discussion&wid=" . (int) $topic['week_id'];
 if (in_array($from, ['dashboard', 'materials', 'admin_course'], true)) {
     $discussionUrl .= '&from=' . urlencode($from);
@@ -74,6 +83,33 @@ if (in_array($from, ['dashboard', 'materials', 'admin_course'], true)) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
+
+    if ($action === 'update_topic') {
+        if (!$canEditTopic) {
+            header("Location: $topicUrl");
+            exit;
+        }
+
+        $title = trim($_POST['title'] ?? '');
+        $body = trim($_POST['body'] ?? '');
+
+        if ($title === '') {
+            set_flash(__('topic_title_required'), 'warning');
+            header("Location: $editTopicUrl");
+            exit;
+        }
+
+        $stmt = $db->prepare(
+            "UPDATE discussion_topics
+             SET title = ?, body = ?, updated_at = CURRENT_TIMESTAMP
+             WHERE id = ? AND user_id = ?"
+        );
+        $stmt->execute([$title, $body, $topicId, $user['id']]);
+
+        set_flash(__('topic_updated'), 'success');
+        header("Location: $topicUrl");
+        exit;
+    }
 
     if ($action === 'add_comment') {
         $commentText = trim($_POST['comment_text'] ?? '');
@@ -83,14 +119,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             [$imagePath, $uploadError] = upload_discussion_image($_FILES['comment_image']);
             if ($uploadError !== null) {
                 set_flash($uploadError, 'danger');
-                header("Location: index.php?route=discussion_topic&topic_id=$topicId" . ($from !== '' ? '&from=' . urlencode($from) : ''));
+                header("Location: $topicUrl");
                 exit;
             }
         }
 
         if ($commentText === '' && $imagePath === null) {
             set_flash(__('comment_requires_text_or_image'), 'warning');
-            header("Location: index.php?route=discussion_topic&topic_id=$topicId" . ($from !== '' ? '&from=' . urlencode($from) : ''));
+            header("Location: $topicUrl");
             exit;
         }
 
@@ -104,7 +140,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$topicId]);
 
         set_flash(__('comment_added'), 'success');
-        header("Location: index.php?route=discussion_topic&topic_id=$topicId" . ($from !== '' ? '&from=' . urlencode($from) : ''));
+        header("Location: $topicUrl");
         exit;
     }
 }
@@ -133,7 +169,7 @@ include 'header.php';
 
 <div class="card" style="margin-bottom:20px">
   <div class="card-title"><?= __('topic_starter') ?></div>
-  <div class="forum-topic-header">
+  <div class="forum-topic-header" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
     <div>
       <div class="forum-topic-title" style="margin-bottom:4px"><?= htmlspecialchars($topic['title']) ?></div>
       <div class="forum-topic-meta">
@@ -141,11 +177,35 @@ include 'header.php';
         <span><?= date('d.m.Y H:i', strtotime($topic['created_at'])) ?></span>
       </div>
     </div>
+    <?php if ($canEditTopic && !$isEditMode): ?>
+      <a href="<?= $editTopicUrl ?>" class="btn btn-secondary btn-sm"><?= __('edit_topic') ?></a>
+    <?php endif; ?>
   </div>
-  <?php if (!empty($topic['body'])): ?>
-    <div class="forum-topic-fulltext"><?= nl2br(htmlspecialchars($topic['body'])) ?></div>
-  <?php else: ?>
-    <p class="forum-empty-note"><?= __('no_data') ?></p>
+
+  <?php if ($isEditMode): ?>
+    <form method="POST" style="margin-top:18px">
+      <input type="hidden" name="action" value="update_topic">
+      <div class="form-group">
+        <label class="form-label"><?= __('topic_title') ?></label>
+        <input type="text" name="title" class="form-control" value="<?= htmlspecialchars($topic['title']) ?>" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label"><?= __('topic_message') ?></label>
+        <textarea name="body" class="form-control" rows="6" placeholder="<?= __('topic_message_placeholder') ?>"><?= htmlspecialchars($topic['body'] ?? '') ?></textarea>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button type="submit" class="btn btn-primary btn-sm"><?= __('save') ?></button>
+        <a href="<?= $topicUrl ?>" class="btn btn-secondary btn-sm"><?= __('cancel') ?></a>
+      </div>
+    </form>
+  <?php endif; ?>
+
+  <?php if (!$isEditMode): ?>
+    <?php if (!empty($topic['body'])): ?>
+      <div class="forum-topic-fulltext"><?= nl2br(htmlspecialchars($topic['body'])) ?></div>
+    <?php else: ?>
+      <p class="forum-empty-note"><?= __('no_data') ?></p>
+    <?php endif; ?>
   <?php endif; ?>
 </div>
 

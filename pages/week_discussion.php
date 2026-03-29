@@ -69,7 +69,10 @@ $stmt = $db->prepare(
     "SELECT t.*,
             u.full_name AS author_name,
             (SELECT COUNT(*) FROM discussion_comments dc WHERE dc.topic_id = t.id) AS comment_count,
-            COALESCE((SELECT MAX(dc.created_at) FROM discussion_comments dc WHERE dc.topic_id = t.id), t.created_at) AS last_activity
+            MAX(
+                COALESCE((SELECT MAX(dc.created_at) FROM discussion_comments dc WHERE dc.topic_id = t.id), t.created_at),
+                COALESCE(t.updated_at, t.created_at)
+            ) AS last_activity
      FROM discussion_topics t
      JOIN users u ON u.id = t.user_id
      WHERE t.week_id = ?
