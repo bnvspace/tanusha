@@ -96,7 +96,7 @@ include 'header.php';
 <div class="card forum-hero" style="margin-bottom:20px">
   <div class="card-title"><?= __('forum_description') ?></div>
   <?php if (!empty($week['discussion_description'])): ?>
-    <div class="forum-description-text"><?= nl2br(htmlspecialchars($week['discussion_description'])) ?></div>
+    <div class="forum-description-text"><?= htmlspecialchars($week['discussion_description']) ?></div>
   <?php else: ?>
     <p class="forum-empty-note"><?= __('discussion_description_empty') ?></p>
   <?php endif; ?>

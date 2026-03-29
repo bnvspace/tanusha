@@ -202,7 +202,7 @@ include 'header.php';
 
   <?php if (!$isEditMode): ?>
     <?php if (!empty($topic['body'])): ?>
-      <div class="forum-topic-fulltext"><?= nl2br(htmlspecialchars($topic['body'])) ?></div>
+      <div class="forum-topic-fulltext"><?= htmlspecialchars($topic['body']) ?></div>
     <?php else: ?>
       <p class="forum-empty-note"><?= __('no_data') ?></p>
     <?php endif; ?>
@@ -220,7 +220,7 @@ include 'header.php';
             <div class="comment-date"><?= date('d.m.Y H:i', strtotime($comment['created_at'])) ?></div>
           </div>
           <?php if (!empty($comment['comment_text'])): ?>
-            <div class="comment-body"><?= nl2br(htmlspecialchars($comment['comment_text'])) ?></div>
+            <div class="comment-body"><?= htmlspecialchars($comment['comment_text']) ?></div>
           <?php endif; ?>
           <?php if (!empty($comment['image_path'])): ?>
             <a href="/uploads/<?= htmlspecialchars($comment['image_path']) ?>" target="_blank" class="comment-image-link">
