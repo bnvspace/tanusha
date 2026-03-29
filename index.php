@@ -55,6 +55,52 @@ switch ($route) {
         break;
         
     case 'register':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $full_name = trim($_POST['full_name'] ?? '');
+            $username = trim($_POST['username'] ?? '');
+            $email = trim($_POST['email'] ?? '');
+            $password = $_POST['password'] ?? '';
+
+            if ($full_name === '' || $username === '' || $email === '' || $password === '') {
+                set_flash('Заполните все поля формы.', 'warning');
+                header("Location: index.php?route=register");
+                exit;
+            }
+
+            if (strlen($password) < 6) {
+                set_flash('Пароль должен содержать минимум 6 символов.', 'warning');
+                header("Location: index.php?route=register");
+                exit;
+            }
+
+            $stmt = $db->prepare("SELECT id FROM users WHERE username = ? LIMIT 1");
+            $stmt->execute([$username]);
+            if ($stmt->fetch()) {
+                set_flash('Пользователь с таким логином уже существует.', 'danger');
+                header("Location: index.php?route=register");
+                exit;
+            }
+
+            $stmt = $db->prepare("SELECT id FROM users WHERE email = ? LIMIT 1");
+            $stmt->execute([$email]);
+            if ($stmt->fetch()) {
+                set_flash('Пользователь с таким email уже существует.', 'danger');
+                header("Location: index.php?route=register");
+                exit;
+            }
+
+            $hash = password_hash($password, PASSWORD_DEFAULT);
+            $stmt = $db->prepare(
+                "INSERT INTO users (username, email, password_hash, full_name, role, is_active, created_at)
+                 VALUES (?, ?, ?, ?, 'student', 1, CURRENT_TIMESTAMP)"
+            );
+            $stmt->execute([$username, $email, $hash, $full_name]);
+
+            set_flash('Регистрация прошла успешно. Теперь войдите в систему.', 'success');
+            header("Location: index.php?route=landing");
+            exit;
+        }
+
         include 'pages/register.php';
         break;
         
@@ -126,11 +172,29 @@ switch ($route) {
             $full_name = trim($_POST['full_name'] ?? '');
             $username = trim($_POST['username'] ?? '');
             $email = trim($_POST['email'] ?? '');
-            $password = trim($_POST['password'] ?? '');
+            $password = $_POST['password'] ?? '';
             $role = $_POST['role'] ?? 'student';
+
+            if ($full_name === '' || $username === '' || $email === '' || $password === '') {
+                set_flash('Заполните все поля формы.', 'warning');
+                header("Location: index.php?route=admin_users");
+                exit;
+            }
+
+            $stmt = $db->prepare("SELECT id FROM users WHERE username = ? OR email = ? LIMIT 1");
+            $stmt->execute([$username, $email]);
+
+            if ($stmt->fetch()) {
+                set_flash('Пользователь с таким логином или email уже существует.', 'danger');
+                header("Location: index.php?route=admin_users");
+                exit;
+            }
+
             $hash = password_hash($password, PASSWORD_DEFAULT);
-            
-            $stmt = $db->prepare("INSERT INTO users (username, email, password_hash, full_name, role) VALUES (?, ?, ?, ?, ?)");
+            $stmt = $db->prepare(
+                "INSERT INTO users (username, email, password_hash, full_name, role, is_active, created_at)
+                 VALUES (?, ?, ?, ?, ?, 1, CURRENT_TIMESTAMP)"
+            );
             $stmt->execute([$username, $email, $hash, $full_name, $role]);
             set_flash('Пользователь создан.', 'success');
         }

@@ -13,17 +13,3 @@ uploads/*
 .env
 .DS_Store
 Thumbs.db
-
-# Скрипты обслуживания (удалите их после использования на сервере)
-migrate_passwords.php
-fix_paths.php
-fix_paths.py
-rename_func.py
-
-# Python (уже не нужны, но игнорируем кэш)
-__pycache__/
-*.py[cod]
-*$py.class
-virtualenv/
-venv/
-ENV/
