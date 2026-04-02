@@ -1,9 +1,7 @@
 <?php
-// bootstrap.php - Инициализация SQLite-схемы и стартовых данных для PHP-версии
+// bootstrap.php - Инициализация MariaDB-схемы и стартовых данных
 
 function bootstrap_database(PDO $db): void {
-    $db->exec('PRAGMA foreign_keys = ON');
-
     $db->beginTransaction();
 
     try {
@@ -26,170 +24,181 @@ function bootstrap_create_schema(PDO $db): void {
     $statements = [
         <<<SQL
         CREATE TABLE IF NOT EXISTS courses (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id INT PRIMARY KEY AUTO_INCREMENT,
             title VARCHAR(256) NOT NULL,
             description TEXT,
             goals TEXT,
             objectives TEXT,
             content_info TEXT
-        )
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         SQL,
         <<<SQL
         CREATE TABLE IF NOT EXISTS weeks (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            course_id INTEGER NOT NULL,
-            number INTEGER NOT NULL,
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            course_id INT NOT NULL,
+            number INT NOT NULL,
             title VARCHAR(256) NOT NULL,
             FOREIGN KEY(course_id) REFERENCES courses(id) ON DELETE CASCADE
-        )
-        SQL,
-        <<<SQL
-        CREATE TABLE IF NOT EXISTS discussion_topics (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            week_id INTEGER NOT NULL,
-            user_id INTEGER NOT NULL,
-            title VARCHAR(255) NOT NULL,
-            body TEXT,
-            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(week_id) REFERENCES weeks(id) ON DELETE CASCADE,
-            FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
-        )
-        SQL,
-        <<<SQL
-        CREATE TABLE IF NOT EXISTS discussion_comments (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            topic_id INTEGER NOT NULL,
-            user_id INTEGER NOT NULL,
-            comment_text TEXT,
-            image_path VARCHAR(512),
-            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(topic_id) REFERENCES discussion_topics(id) ON DELETE CASCADE,
-            FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
-        )
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         SQL,
         <<<SQL
         CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id INT PRIMARY KEY AUTO_INCREMENT,
             username VARCHAR(64) NOT NULL UNIQUE,
             full_name VARCHAR(128) NOT NULL,
             email VARCHAR(120) NOT NULL UNIQUE,
             password_hash VARCHAR(256) NOT NULL,
             role VARCHAR(16) NOT NULL DEFAULT 'student',
-            is_active BOOLEAN NOT NULL DEFAULT 1,
+            is_active TINYINT(1) NOT NULL DEFAULT 1,
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-        )
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        SQL,
+        <<<SQL
+        CREATE TABLE IF NOT EXISTS discussion_topics (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            week_id INT NOT NULL,
+            user_id INT NOT NULL,
+            title VARCHAR(255) NOT NULL,
+            body TEXT,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            FOREIGN KEY(week_id) REFERENCES weeks(id) ON DELETE CASCADE,
+            FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        SQL,
+        <<<SQL
+        CREATE TABLE IF NOT EXISTS discussion_comments (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            topic_id INT NOT NULL,
+            user_id INT NOT NULL,
+            comment_text TEXT,
+            image_path VARCHAR(512),
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(topic_id) REFERENCES discussion_topics(id) ON DELETE CASCADE,
+            FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         SQL,
         <<<SQL
         CREATE TABLE IF NOT EXISTS materials (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            week_id INTEGER NOT NULL,
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            week_id INT NOT NULL,
             title VARCHAR(256) NOT NULL,
             material_type VARCHAR(32),
             content TEXT,
             file_path VARCHAR(512),
             url VARCHAR(1024),
-            visible BOOLEAN NOT NULL DEFAULT 1,
+            visible TINYINT(1) NOT NULL DEFAULT 1,
             open_date DATETIME,
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(week_id) REFERENCES weeks(id) ON DELETE CASCADE
-        )
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         SQL,
         <<<SQL
         CREATE TABLE IF NOT EXISTS assignments (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            week_id INTEGER NOT NULL,
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            week_id INT NOT NULL,
             title VARCHAR(256) NOT NULL,
             description TEXT,
             deadline DATETIME,
-            visible BOOLEAN NOT NULL DEFAULT 1,
+            visible TINYINT(1) NOT NULL DEFAULT 1,
             open_date DATETIME,
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(week_id) REFERENCES weeks(id) ON DELETE CASCADE
-        )
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         SQL,
         <<<SQL
         CREATE TABLE IF NOT EXISTS submissions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            assignment_id INTEGER NOT NULL,
-            user_id INTEGER NOT NULL,
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            assignment_id INT NOT NULL,
+            user_id INT NOT NULL,
             file_path VARCHAR(512),
             text_answer TEXT,
             submitted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             status VARCHAR(16) NOT NULL DEFAULT 'pending',
-            grade INTEGER,
+            grade INT,
             comment TEXT,
             reviewed_at DATETIME,
-            reviewed_by INTEGER,
+            reviewed_by INT,
             FOREIGN KEY(assignment_id) REFERENCES assignments(id) ON DELETE CASCADE,
             FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
             FOREIGN KEY(reviewed_by) REFERENCES users(id)
-        )
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         SQL,
-        'CREATE INDEX IF NOT EXISTS idx_discussion_topics_week_id ON discussion_topics(week_id)',
-        'CREATE INDEX IF NOT EXISTS idx_discussion_comments_topic_id ON discussion_comments(topic_id)',
         <<<SQL
         CREATE TABLE IF NOT EXISTS tests (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            week_id INTEGER NOT NULL,
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            week_id INT NOT NULL,
             title VARCHAR(256) NOT NULL,
             description TEXT,
-            time_limit INTEGER,
-            show_answers BOOLEAN NOT NULL DEFAULT 1,
-            visible BOOLEAN NOT NULL DEFAULT 1,
+            time_limit INT,
+            show_answers TINYINT(1) NOT NULL DEFAULT 1,
+            visible TINYINT(1) NOT NULL DEFAULT 1,
             open_date DATETIME,
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(week_id) REFERENCES weeks(id) ON DELETE CASCADE
-        )
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         SQL,
         <<<SQL
         CREATE TABLE IF NOT EXISTS test_questions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            test_id INTEGER NOT NULL,
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            test_id INT NOT NULL,
             question_text TEXT NOT NULL,
             question_type VARCHAR(16) NOT NULL DEFAULT 'single',
-            order_num INTEGER NOT NULL DEFAULT 0,
+            order_num INT NOT NULL DEFAULT 0,
             FOREIGN KEY(test_id) REFERENCES tests(id) ON DELETE CASCADE
-        )
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         SQL,
         <<<SQL
         CREATE TABLE IF NOT EXISTS test_options (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            question_id INTEGER NOT NULL,
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            question_id INT NOT NULL,
             option_text TEXT NOT NULL,
-            is_correct BOOLEAN NOT NULL DEFAULT 0,
+            is_correct TINYINT(1) NOT NULL DEFAULT 0,
             FOREIGN KEY(question_id) REFERENCES test_questions(id) ON DELETE CASCADE
-        )
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         SQL,
         <<<SQL
         CREATE TABLE IF NOT EXISTS test_submissions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            test_id INTEGER NOT NULL,
-            user_id INTEGER NOT NULL,
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            test_id INT NOT NULL,
+            user_id INT NOT NULL,
             started_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             finished_at DATETIME,
-            score INTEGER NOT NULL DEFAULT 0,
-            max_score INTEGER NOT NULL DEFAULT 0,
+            score INT NOT NULL DEFAULT 0,
+            max_score INT NOT NULL DEFAULT 0,
             FOREIGN KEY(test_id) REFERENCES tests(id) ON DELETE CASCADE,
             FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
-        )
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         SQL,
         <<<SQL
         CREATE TABLE IF NOT EXISTS test_answers (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            submission_id INTEGER NOT NULL,
-            question_id INTEGER NOT NULL,
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            submission_id INT NOT NULL,
+            question_id INT NOT NULL,
             answer_text TEXT,
             selected_options TEXT,
-            is_correct BOOLEAN,
+            is_correct TINYINT(1),
             FOREIGN KEY(submission_id) REFERENCES test_submissions(id) ON DELETE CASCADE,
             FOREIGN KEY(question_id) REFERENCES test_questions(id) ON DELETE CASCADE
-        )
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         SQL,
     ];
 
     foreach ($statements as $sql) {
         $db->exec($sql);
+    }
+
+    // Индексы (CREATE INDEX IF NOT EXISTS не поддерживается в MySQL, используем обход)
+    $indexes = [
+        ['idx_discussion_topics_week_id', 'discussion_topics', 'week_id'],
+        ['idx_discussion_comments_topic_id', 'discussion_comments', 'topic_id'],
+    ];
+
+    foreach ($indexes as [$indexName, $table, $column]) {
+        $stmt = $db->query("SHOW INDEX FROM `$table` WHERE Key_name = '$indexName'");
+        if ($stmt->rowCount() === 0) {
+            $db->exec("CREATE INDEX `$indexName` ON `$table`(`$column`)");
+        }
     }
 }
 
@@ -198,16 +207,16 @@ function bootstrap_migrate_existing_schema(PDO $db): void {
 }
 
 function bootstrap_add_column_if_missing(PDO $db, string $table, string $column, string $definition): void {
-    $stmt = $db->query("PRAGMA table_info($table)");
-    $columns = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmt = $db->prepare(
+        "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?"
+    );
+    $stmt->execute([$table, $column]);
 
-    foreach ($columns as $existingColumn) {
-        if (($existingColumn['name'] ?? '') === $column) {
-            return;
-        }
+    if ($stmt->fetch()) {
+        return; // Колонка уже существует
     }
 
-    $db->exec("ALTER TABLE $table ADD COLUMN $column $definition");
+    $db->exec("ALTER TABLE `$table` ADD COLUMN `$column` $definition");
 }
 
 function bootstrap_seed_course(PDO $db): void {
