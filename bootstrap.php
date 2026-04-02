@@ -2,20 +2,13 @@
 // bootstrap.php - Инициализация MariaDB-схемы и стартовых данных
 
 function bootstrap_database(PDO $db): void {
-    $db->beginTransaction();
-
     try {
         bootstrap_create_schema($db);
         bootstrap_migrate_existing_schema($db);
         bootstrap_seed_course($db);
         bootstrap_seed_default_users($db);
         bootstrap_migrate_legacy_default_passwords($db);
-        $db->commit();
     } catch (Throwable $e) {
-        if ($db->inTransaction()) {
-            $db->rollBack();
-        }
-
         throw $e;
     }
 }
