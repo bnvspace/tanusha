@@ -353,6 +353,9 @@ return [
         'text_hint_comma' => 'Введите правильные ответы через запятую ниже:',
         'correct_answer_alt' => 'правильный ответ, альтернатива',
         'option_placeholder' => 'Вариант ответа...',
+        'edit_test_title' => 'Редактировать тест',
+        'test_updated_success' => 'Тест успешно обновлён!',
+        'back_btn' => 'Назад',
     ],
     'kk' => [
         'app_name' => 'Жылу энергетиктеріне арналған шет тілі',
@@ -705,6 +708,9 @@ return [
         'text_hint_comma' => 'Дұрыс жауаптарды үтір арқылы төменге енгізіңіз:',
         'correct_answer_alt' => 'дұрыс жауап, балама',
         'option_placeholder' => 'Жауап нұсқасы...',
+        'edit_test_title' => 'Тестті өңдеу',
+        'test_updated_success' => 'Тест сәтті жаңартылды!',
+        'back_btn' => 'Артқа',
     ],
     'en' => [
         'app_name' => 'ESP for Thermal Power Engineers',
@@ -1057,5 +1063,8 @@ return [
         'text_hint_comma' => 'Enter correct answers separated by commas below:',
         'correct_answer_alt' => 'correct answer, alternative',
         'option_placeholder' => 'Answer option...',
+        'edit_test_title' => 'Edit Test',
+        'test_updated_success' => 'Test updated successfully!',
+        'back_btn' => 'Back',
     ]
 ];
