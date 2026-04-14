@@ -6,7 +6,8 @@
 $stmt = $db->query("SELECT * FROM courses LIMIT 1");
 $course = $stmt->fetch();
 
-$stmt = $db->prepare("SELECT * FROM weeks WHERE course_id = ? ORDER BY number");
+normalize_course_week_numbers($db, (int) $course['id']);
+$stmt = $db->prepare("SELECT * FROM weeks WHERE course_id = ? ORDER BY number, id");
 $stmt->execute([$course['id']]);
 $weeks = $stmt->fetchAll();
 

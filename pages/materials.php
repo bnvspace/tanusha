@@ -4,7 +4,14 @@
 $stmt = $db->query("SELECT * FROM courses LIMIT 1");
 $course = $stmt->fetch();
 
-$stmt = $db->prepare("SELECT * FROM weeks WHERE course_id = ? ORDER BY number");
+if (!$course) {
+    die(__('no_data'));
+}
+
+normalize_course_week_numbers($db, (int) $course['id']);
+$courseDocuments = get_course_documents($course);
+
+$stmt = $db->prepare("SELECT * FROM weeks WHERE course_id = ? ORDER BY number, id");
 $stmt->execute([$course['id']]);
 $weeks = $stmt->fetchAll();
 
@@ -19,8 +26,22 @@ include 'header.php';
   </div>
 </div>
 
+<?php if (!empty($courseDocuments)): ?>
+<div class="card mb-5">
+  <div class="card-title">📄 <?= __('course_documents') ?></div>
+  <div class="flex gap-3 flex-wrap">
+    <?php foreach ($courseDocuments as $document): ?>
+      <a href="<?= htmlspecialchars($document['url']) ?>" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
+        <?= htmlspecialchars($document['label']) ?>
+      </a>
+    <?php endforeach; ?>
+  </div>
+</div>
+<?php endif; ?>
+
 <?php if (!empty($weeks)): ?>
-    <?php foreach ($weeks as $week):
+    <?php foreach ($weeks as $week): ?>
+    <?php
         $stmt = $db->prepare("SELECT * FROM materials WHERE week_id = ? AND visible = 1 ORDER BY created_at");
         $stmt->execute([$week['id']]);
         $materials = $stmt->fetchAll();
@@ -35,43 +56,44 @@ include 'header.php';
 
         $stmt = $db->prepare("SELECT COUNT(*) FROM discussion_topics WHERE week_id = ?");
         $stmt->execute([$week['id']]);
-        $topic_count = (int) $stmt->fetchColumn();
+        $topicCount = (int) $stmt->fetchColumn();
 
-        $has_items = !empty($materials) || !empty($assignments) || !empty($tests);
+        $hasItems = !empty($materials) || !empty($assignments) || !empty($tests);
     ?>
     <div class="week-block">
       <div class="week-header" onclick="toggleWeek(<?= $week['id'] ?>)">
         <div class="week-title">
           <div class="week-num"><?= $week['number'] ?></div>
-          <?= htmlspecialchars($week['title']) ?>
+          <?= htmlspecialchars(format_week_title($week['title'])) ?>
         </div>
         <div class="forum-week-actions">
           <a href="index.php?route=week_discussion&wid=<?= $week['id'] ?>&from=materials" class="btn btn-secondary btn-sm" onclick="event.stopPropagation()">
             💬 <?= __('open_discussion') ?>
-            <?php if ($topic_count > 0): ?>
-              <span class="forum-count-badge"><?= $topic_count ?></span>
+            <?php if ($topicCount > 0): ?>
+              <span class="forum-count-badge"><?= $topicCount ?></span>
             <?php endif; ?>
           </a>
-          <span id="arrow-<?= $week['id'] ?>" style="font-size:1.1rem;color:var(--muted)">▾</span>
+          <span id="arrow-<?= $week['id'] ?>" class="text-muted" style="font-size:1.1rem">▾</span>
         </div>
       </div>
       <div class="week-body" id="week-<?= $week['id'] ?>" style="display:none">
 
         <?php if (!empty($materials)): ?>
-          <div style="margin-bottom:14px">
-            <div style="font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px">📚 <?= __('materials') ?></div>
+          <div class="mb-4">
+            <div class="section-label">📚 <?= __('materials') ?></div>
             <div class="item-list">
-              <?php foreach ($materials as $m):
-                $type_icons = ['file' => '📄', 'video' => '🎬', 'audio' => '🎵', 'link' => '🔗', 'text' => '📝', 'interactive' => '🎯'];
-                $type_classes = ['file' => 'ic-file', 'video' => 'ic-video', 'audio' => 'ic-audio', 'link' => 'ic-link', 'text' => 'ic-text', 'interactive' => 'ic-interactive'];
-                $icon = $type_icons[$m['material_type']] ?? '📄';
-                $class = $type_classes[$m['material_type']] ?? 'ic-file';
+              <?php foreach ($materials as $material): ?>
+              <?php
+                $typeIcons = ['file' => '📄', 'video' => '🎬', 'audio' => '🎵', 'link' => '🔗', 'text' => '📝', 'interactive' => '🎯'];
+                $typeClasses = ['file' => 'ic-file', 'video' => 'ic-video', 'audio' => 'ic-audio', 'link' => 'ic-link', 'text' => 'ic-text', 'interactive' => 'ic-interactive'];
+                $icon = $typeIcons[$material['material_type']] ?? '📄';
+                $class = $typeClasses[$material['material_type']] ?? 'ic-file';
 
                 $link = null;
-                if (!empty($m['url'])) {
-                    $link = $m['url'];
-                } elseif (!empty($m['file_path'])) {
-                    $link = "/uploads/" . $m['file_path'];
+                if (!empty($material['url'])) {
+                    $link = $material['url'];
+                } elseif (!empty($material['file_path'])) {
+                    $link = '/uploads/' . $material['file_path'];
                 }
               ?>
                 <?php if ($link): ?>
@@ -81,11 +103,11 @@ include 'header.php';
                 <?php endif; ?>
                   <div class="item-icon <?= $class ?>"><?= $icon ?></div>
                   <div class="item-info">
-                    <div class="item-title"><?= htmlspecialchars($m['title']) ?></div>
+                    <div class="item-title"><?= htmlspecialchars($material['title']) ?></div>
                     <div class="item-meta">
-                      <?= __($m['material_type'] === 'interactive' ? 'interactive' : ($m['material_type'] === 'text' ? 'text_pres' : $m['material_type'])) ?>
-                      <?php if ($m['content']): ?>
-                        · <?= htmlspecialchars(mb_substr($m['content'], 0, 80)) . (mb_strlen($m['content']) > 80 ? '...' : '') ?>
+                      <?= __($material['material_type'] === 'interactive' ? 'interactive' : ($material['material_type'] === 'text' ? 'text_pres' : $material['material_type'])) ?>
+                      <?php if ($material['content']): ?>
+                        · <?= htmlspecialchars(mb_substr($material['content'], 0, 80)) . (mb_strlen($material['content']) > 80 ? '...' : '') ?>
                       <?php endif; ?>
                     </div>
                   </div>
@@ -97,16 +119,16 @@ include 'header.php';
         <?php endif; ?>
 
         <?php if (!empty($assignments)): ?>
-          <div style="margin-bottom:14px">
-            <div style="font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px">📝 <?= __('assignments') ?></div>
+          <div class="mb-4">
+            <div class="section-label">📝 <?= __('assignments') ?></div>
             <div class="item-list">
-              <?php foreach ($assignments as $a): ?>
-              <a href="index.php?route=assignment_detail&aid=<?= $a['id'] ?>" class="item-card">
+              <?php foreach ($assignments as $assignment): ?>
+              <a href="index.php?route=assignment_detail&aid=<?= $assignment['id'] ?>" class="item-card">
                 <div class="item-icon ic-task">📝</div>
                 <div class="item-info">
-                  <div class="item-title"><?= htmlspecialchars($a['title']) ?></div>
+                  <div class="item-title"><?= htmlspecialchars($assignment['title']) ?></div>
                   <div class="item-meta">
-                    <?= !empty($a['deadline']) ? __('due_date') . ": " . date('d.m.Y H:i', strtotime($a['deadline'])) : __('no_deadline') ?>
+                    <?= !empty($assignment['deadline']) ? __('due_date') . ': ' . date('d.m.Y H:i', strtotime($assignment['deadline'])) : __('no_deadline') ?>
                   </div>
                 </div>
                 <div class="item-action">→</div>
@@ -118,18 +140,19 @@ include 'header.php';
 
         <?php if (!empty($tests)): ?>
           <div>
-            <div style="font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px">🧪 <?= __('tests') ?></div>
+            <div class="section-label">🧪 <?= __('tests') ?></div>
             <div class="item-list">
-              <?php foreach ($tests as $t):
-                $stmt_q = $db->prepare("SELECT COUNT(*) FROM test_questions WHERE test_id = ?");
-                $stmt_q->execute([$t['id']]);
-                $q_count = $stmt_q->fetchColumn();
+              <?php foreach ($tests as $test): ?>
+              <?php
+                $stmtQuestionCount = $db->prepare("SELECT COUNT(*) FROM test_questions WHERE test_id = ?");
+                $stmtQuestionCount->execute([$test['id']]);
+                $questionCount = $stmtQuestionCount->fetchColumn();
               ?>
-              <a href="index.php?route=test_take&tid=<?= $t['id'] ?>" class="item-card">
+              <a href="index.php?route=test_take&tid=<?= $test['id'] ?>" class="item-card">
                 <div class="item-icon ic-test">🧪</div>
                 <div class="item-info">
-                  <div class="item-title"><?= htmlspecialchars($t['title']) ?></div>
-                  <div class="item-meta"><?= $q_count ?> <?= __('questions_plural') ?><?= !empty($t['time_limit']) ? " · " . $t['time_limit'] . " " . __('minutes') : "" ?></div>
+                  <div class="item-title"><?= htmlspecialchars($test['title']) ?></div>
+                  <div class="item-meta"><?= $questionCount ?> <?= __('questions_plural') ?><?= !empty($test['time_limit']) ? ' · ' . $test['time_limit'] . ' ' . __('minutes') : '' ?></div>
                 </div>
                 <div class="item-action">→</div>
               </a>
@@ -138,15 +161,15 @@ include 'header.php';
           </div>
         <?php endif; ?>
 
-        <?php if (!$has_items): ?>
-          <p style="color:var(--muted);font-size:.88rem;text-align:center;padding:10px"><?= __('no_data') ?></p>
+        <?php if (!$hasItems): ?>
+          <p class="empty-state"><?= __('no_data') ?></p>
         <?php endif; ?>
       </div>
     </div>
     <?php endforeach; ?>
 <?php else: ?>
     <div class="card">
-      <p style="text-align:center;color:var(--muted);padding:30px"><?= __('no_data') ?></p>
+      <p class="empty-state"><?= __('no_data') ?></p>
     </div>
 <?php endif; ?>
 

@@ -5,20 +5,23 @@ $stmt = $db->query("SELECT * FROM courses LIMIT 1");
 $course = $stmt->fetch();
 
 if (!$course) {
-    die("Курс не найден.");
+    die(__('no_data'));
 }
 
-$stmt = $db->prepare("SELECT * FROM weeks WHERE course_id = ? ORDER BY number");
+normalize_course_week_numbers($db, (int) $course['id']);
+$courseDocuments = get_course_documents($course);
+
+$stmt = $db->prepare("SELECT * FROM weeks WHERE course_id = ? ORDER BY number, id");
 $stmt->execute([$course['id']]);
 $weeks = $stmt->fetchAll();
 
 $stmt = $db->prepare("SELECT COUNT(DISTINCT assignment_id) FROM submissions WHERE user_id = ?");
 $stmt->execute([$user['id']]);
-$done_assignments = (int) $stmt->fetchColumn();
+$doneAssignments = (int) $stmt->fetchColumn();
 
 $stmt = $db->prepare("SELECT COUNT(DISTINCT test_id) FROM test_submissions WHERE user_id = ? AND finished_at IS NOT NULL");
 $stmt->execute([$user['id']]);
-$done_tests = (int) $stmt->fetchColumn();
+$doneTests = (int) $stmt->fetchColumn();
 
 foreach ($weeks as &$week) {
     $stmt = $db->prepare(
@@ -68,56 +71,69 @@ include 'header.php';
   <div class="stat-card">
     <div class="stat-icon">✅</div>
     <div class="stat-label"><?= __('assignments_done') ?></div>
-    <div class="stat-value"><?= $done_assignments ?></div>
+    <div class="stat-value"><?= $doneAssignments ?></div>
   </div>
   <div class="stat-card">
     <div class="stat-icon">🧪</div>
     <div class="stat-label"><?= __('tests_done') ?></div>
-    <div class="stat-value"><?= $done_tests ?></div>
+    <div class="stat-value"><?= $doneTests ?></div>
   </div>
 </div>
 
-<div class="card" style="margin-bottom:20px">
+<div class="card mb-5">
   <div class="card-title">📋 <?= __('about_course') ?></div>
-  <p style="margin-bottom:14px;color:var(--muted);line-height:1.7"><?= htmlspecialchars($course['description'] ?? '') ?></p>
+  <p class="text-muted leading-relaxed mb-4"><?= htmlspecialchars($course['description'] ?? '') ?></p>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:16px">
+  <div class="grid grid-cols-2 gap-5 mt-4">
     <div>
-      <div style="font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px">
+      <div class="font-bold mb-2 flex items-center gap-2">
         🎯 <?= __('course_goals') ?>
       </div>
-      <p style="font-size:.9rem;line-height:1.7;color:var(--text)"><?= htmlspecialchars($course['goals'] ?? '') ?></p>
+      <p class="text-sm leading-relaxed"><?= htmlspecialchars($course['goals'] ?? '') ?></p>
     </div>
     <div>
-      <div style="font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px">
+      <div class="font-bold mb-2 flex items-center gap-2">
         📌 <?= __('course_objectives') ?>
       </div>
-      <p style="font-size:.9rem;line-height:1.7;color:var(--text);white-space:pre-line"><?= htmlspecialchars($course['objectives'] ?? '') ?></p>
+      <p class="text-sm leading-relaxed whitespace-preline"><?= htmlspecialchars($course['objectives'] ?? '') ?></p>
     </div>
   </div>
 
   <?php if (!empty($course['content_info'])): ?>
-  <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
-    <div style="font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px">
+  <div class="separator">
+    <div class="font-bold mb-2 flex items-center gap-2">
       📚 <?= __('learning_content') ?>
     </div>
-    <p style="font-size:.9rem;line-height:1.7;color:var(--text)"><?= htmlspecialchars($course['content_info']) ?></p>
+    <p class="text-sm leading-relaxed"><?= htmlspecialchars($course['content_info']) ?></p>
   </div>
   <?php endif; ?>
 </div>
+
+<?php if (!empty($courseDocuments)): ?>
+<div class="card mb-5">
+  <div class="card-title">📄 <?= __('course_documents') ?></div>
+  <div class="flex gap-3 flex-wrap">
+    <?php foreach ($courseDocuments as $document): ?>
+      <a href="<?= htmlspecialchars($document['url']) ?>" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">
+        <?= htmlspecialchars($document['label']) ?>
+      </a>
+    <?php endforeach; ?>
+  </div>
+</div>
+<?php endif; ?>
 
 <div class="card">
   <div class="card-title">📅 <?= __('course_structure') ?></div>
   <?php if (!empty($weeks)): ?>
     <?php foreach ($weeks as $week): ?>
     <div class="week-block">
-      <div class="week-header forum-week-header" style="justify-content:space-between">
+      <div class="week-header forum-week-header justify-between">
         <div class="week-title">
           <div class="week-num"><?= $week['number'] ?></div>
-          <?= htmlspecialchars($week['title']) ?>
+          <?= htmlspecialchars(format_week_title($week['title'])) ?>
         </div>
         <div class="forum-week-actions">
-          <span style="font-size:.8rem;color:var(--muted)">
+          <span class="text-xs text-muted">
             <?= $week['materials_count'] ?> <?= __('mats_unit') ?> · <?= $week['assignments_count'] ?> <?= __('asns_unit') ?> · <?= $week['tests_count'] ?> <?= __('tests_unit') ?>
           </span>
           <a href="index.php?route=week_discussion&wid=<?= $week['id'] ?>&from=dashboard" class="btn btn-secondary btn-sm">
@@ -131,11 +147,11 @@ include 'header.php';
     </div>
     <?php endforeach; ?>
   <?php else: ?>
-    <p style="color:var(--muted);text-align:center;padding:20px"><?= __('no_data') ?></p>
+    <p class="empty-state"><?= __('no_data') ?></p>
   <?php endif; ?>
 </div>
 
-<div style="display:flex;gap:12px;margin-top:20px">
+<div class="flex gap-4 mt-5">
   <a href="index.php?route=materials" class="btn btn-primary">📖 <?= __('materials') ?></a>
   <a href="index.php?route=assignments" class="btn btn-secondary">📝 <?= __('assignments') ?></a>
   <a href="index.php?route=tests" class="btn btn-secondary">🧪 <?= __('tests') ?></a>

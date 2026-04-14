@@ -23,7 +23,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $stmt = $db->query("SELECT * FROM courses LIMIT 1");
 $course = $stmt->fetch();
-$stmt = $db->prepare("SELECT * FROM weeks WHERE course_id = ? ORDER BY number");
+normalize_course_week_numbers($db, (int) $course['id']);
+$stmt = $db->prepare("SELECT * FROM weeks WHERE course_id = ? ORDER BY number, id");
 $stmt->execute([$course['id']]);
 $weeks = $stmt->fetchAll();
 
@@ -45,7 +46,7 @@ include 'header.php';
         <label class="form-label"><?= __('week') ?></label>
         <select name="week_id" class="form-control" required>
           <?php foreach ($weeks as $week): ?>
-          <option value="<?= $week['id'] ?>"><?= __('week') ?> <?= $week['number'] ?>: <?= htmlspecialchars($week['title']) ?></option>
+          <option value="<?= $week['id'] ?>"><?= __('week') ?> <?= $week['number'] ?>: <?= htmlspecialchars(format_week_title($week['title'])) ?></option>
           <?php endforeach; ?>
         </select>
       </div>

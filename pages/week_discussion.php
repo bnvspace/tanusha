@@ -1,10 +1,10 @@
 <?php
 // pages/week_discussion.php
 
-$week_id = (int) ($_GET['wid'] ?? 0);
+$weekId = (int) ($_GET['wid'] ?? 0);
 $from = $_GET['from'] ?? '';
 
-if ($week_id <= 0) {
+if ($weekId <= 0) {
     header('Location: index.php?route=' . (in_array($user['role'], ['teacher', 'admin'], true) ? 'admin_course' : 'materials'));
     exit;
 }
@@ -15,19 +15,23 @@ $stmt = $db->prepare(
      JOIN courses c ON c.id = w.course_id
      WHERE w.id = ?"
 );
-$stmt->execute([$week_id]);
+$stmt->execute([$weekId]);
 $week = $stmt->fetch();
 
 if (!$week) {
     die(__('week_not_found'));
 }
 
+normalize_course_week_numbers($db, (int) $week['course_id']);
+$stmt->execute([$weekId]);
+$week = $stmt->fetch();
+
 $backRoute = in_array($user['role'], ['teacher', 'admin'], true) ? 'admin_course' : 'materials';
 if (in_array($from, ['dashboard', 'materials', 'admin_course'], true)) {
     $backRoute = $from;
 }
 
-$topicBaseUrl = "index.php?route=discussion_topic&from=" . urlencode($backRoute);
+$topicBaseUrl = 'index.php?route=discussion_topic&from=' . urlencode($backRoute);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
@@ -35,10 +39,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'update_forum_description' && in_array($user['role'], ['teacher', 'admin'], true)) {
         $description = trim($_POST['discussion_description'] ?? '');
         $stmt = $db->prepare("UPDATE weeks SET discussion_description = ? WHERE id = ?");
-        $stmt->execute([$description, $week_id]);
+        $stmt->execute([$description, $weekId]);
 
         set_flash(__('forum_description_saved'), 'success');
-        header("Location: index.php?route=week_discussion&wid=$week_id&from=$backRoute");
+        header("Location: index.php?route=week_discussion&wid=$weekId&from=$backRoute");
         exit;
     }
 
@@ -48,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($title === '') {
             set_flash(__('topic_title_required'), 'warning');
-            header("Location: index.php?route=week_discussion&wid=$week_id&from=$backRoute");
+            header("Location: index.php?route=week_discussion&wid=$weekId&from=$backRoute");
             exit;
         }
 
@@ -56,11 +60,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             "INSERT INTO discussion_topics (week_id, user_id, title, body, created_at, updated_at)
              VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
         );
-        $stmt->execute([$week_id, $user['id'], $title, $body]);
+        $stmt->execute([$weekId, $user['id'], $title, $body]);
 
         $topicId = (int) $db->lastInsertId();
         set_flash(__('topic_created'), 'success');
-        header("Location: " . $topicBaseUrl . "&topic_id=$topicId");
+        header("Location: $topicBaseUrl&topic_id=$topicId");
         exit;
     }
 }
@@ -69,7 +73,7 @@ $stmt = $db->prepare(
     "SELECT t.*,
             u.full_name AS author_name,
             (SELECT COUNT(*) FROM discussion_comments dc WHERE dc.topic_id = t.id) AS comment_count,
-            MAX(
+            GREATEST(
                 COALESCE((SELECT MAX(dc.created_at) FROM discussion_comments dc WHERE dc.topic_id = t.id), t.created_at),
                 COALESCE(t.updated_at, t.created_at)
             ) AS last_activity
@@ -78,7 +82,7 @@ $stmt = $db->prepare(
      WHERE t.week_id = ?
      ORDER BY last_activity DESC, t.id DESC"
 );
-$stmt->execute([$week_id]);
+$stmt->execute([$weekId]);
 $topics = $stmt->fetchAll();
 
 $page_title = __('discussion');
@@ -88,7 +92,7 @@ include 'header.php';
 <div class="topbar">
   <div>
     <h1><?= __('week_discussion_title') ?></h1>
-    <div class="breadcrumb"><?= __('week') ?> <?= $week['number'] ?> · <?= htmlspecialchars($week['title']) ?></div>
+    <div class="breadcrumb"><?= __('week') ?> <?= $week['number'] ?> · <?= htmlspecialchars(format_week_title($week['title'])) ?></div>
   </div>
   <a href="index.php?route=<?= htmlspecialchars($backRoute) ?>" class="btn btn-secondary btn-sm"><?= __('back') ?></a>
 </div>

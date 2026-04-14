@@ -30,20 +30,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_q->execute([$test_id, $text, $type, $i + 1]);
             $q_id = $db->lastInsertId();
             
-            // Внимание: в JS мы используем порядковый индекс qi как часть имени поля opt_qi
-            // При отправке формы индексы могут не совпадать с i, если вопросы удалялись.
-            // Но в PHP $_POST['q_text'] будет последовательным массивом.
-            // Однако в JS qi присваивается один раз и не меняется.
-            // Нам нужно передать исходный индекс qi в форму, чтобы сопоставить его здесь.
-            // Исправлю JS ниже, чтобы передавать qi.
-            
             $orig_qi = $_POST['q_idx'][$idx];
             $opts = $_POST['opt_' . $orig_qi] ?? [];
             $corrects = $_POST['correct_' . $orig_qi] ?? [];
             
             foreach ($opts as $j => $opt_text) {
                 if ($type == 'text') {
-                    // Для текстового типа все введенные варианты считаются правильными (синонимы)
                     $is_correct = true;
                 } else {
                     $is_correct = in_array($j, $corrects);
@@ -66,7 +58,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $stmt = $db->query("SELECT * FROM courses LIMIT 1");
 $course = $stmt->fetch();
-$stmt = $db->prepare("SELECT * FROM weeks WHERE course_id = ? ORDER BY number");
+normalize_course_week_numbers($db, (int) $course['id']);
+$stmt = $db->prepare("SELECT * FROM weeks WHERE course_id = ? ORDER BY number, id");
 $stmt->execute([$course['id']]);
 $weeks = $stmt->fetchAll();
 
@@ -84,12 +77,12 @@ include 'header.php';
 
 <div class="card">
   <form method="POST" id="test-form">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div class="grid grid-cols-2 gap-5">
       <div class="form-group">
         <label class="form-label"><?= __('week') ?></label>
         <select name="week_id" class="form-control" required>
           <?php foreach ($weeks as $week): ?>
-          <option value="<?= $week['id'] ?>"><?= __('week') ?> <?= $week['number'] ?>: <?= htmlspecialchars($week['title']) ?></option>
+          <option value="<?= $week['id'] ?>"><?= __('week') ?> <?= $week['number'] ?>: <?= htmlspecialchars(format_week_title($week['title'])) ?></option>
           <?php endforeach; ?>
         </select>
       </div>
@@ -106,37 +99,37 @@ include 'header.php';
       <label class="form-label"><?= __('description_lbl') ?></label>
       <textarea name="description" class="form-control" rows="2" placeholder="<?= __('test_desc_placeholder') ?>"></textarea>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px">
-      <div class="form-group" style="margin-bottom:0">
+    <div class="grid grid-cols-3 gap-5 mb-5">
+      <div class="form-group mb-0">
         <label class="form-label"><?= __('visibility') ?></label>
         <select name="visible" class="form-control">
           <option value="1"><?= __('visible_short') ?></option>
           <option value="0"><?= __('hidden') ?></option>
         </select>
       </div>
-      <div class="form-group" style="margin-bottom:0">
+      <div class="form-group mb-0">
         <label class="form-label"><?= __('show_answers_lbl') ?></label>
         <select name="show_answers" class="form-control">
           <option value="1"><?= __('yes_after_passing') ?></option>
           <option value="0"><?= __('no_short') ?></option>
         </select>
       </div>
-      <div class="form-group" style="margin-bottom:0">
+      <div class="form-group mb-0">
         <label class="form-label"><?= __('open_date_lbl') ?></label>
         <input type="datetime-local" name="open_date" class="form-control">
       </div>
     </div>
 
     <!-- Вопросы -->
-    <div style="border-top:2px solid var(--border);padding-top:20px;margin-top:4px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-        <div style="font-weight:700;font-size:1.05rem">❓ <?= __('questions_title') ?></div>
+    <div class="separator">
+      <div class="flex items-center justify-between mb-4">
+        <div class="font-bold text-lg">❓ <?= __('questions_title') ?></div>
         <button type="button" class="btn btn-secondary btn-sm" onclick="addQuestion()"><?= __('add_question_btn') ?></button>
       </div>
       <div id="questions-container"></div>
     </div>
 
-    <div style="margin-top:20px;display:flex;gap:12px">
+    <div class="flex gap-4 mt-5">
       <button type="submit" class="btn btn-primary">✅ <?= __('create_test_title') ?></button>
       <a href="index.php?route=admin_course" class="btn btn-secondary"><?= __('cancel') ?></a>
     </div>
@@ -154,8 +147,8 @@ function addQuestion() {
   div.id = `q-block-${qi}`;
   div.innerHTML = `
     <input type="hidden" name="q_idx[]" value="${qi}">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-      <div style="font-weight:700" class="q-label"><?= __('question') ?></div>
+    <div class="flex items-center justify-between mb-3">
+      <div class="font-bold q-label"><?= __('question') ?></div>
       <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.question-block').remove(); updateLabels()">✕ <?= __('delete') ?></button>
     </div>
     <div class="form-group">
@@ -171,13 +164,13 @@ function addQuestion() {
       </select>
     </div>
     <div id="opts-${qi}">
-      <label class="form-label"><?= __('answer_options') ?> <span style="font-weight:400;color:var(--muted)"><?= __('mark_correct_hint') ?></span></label>
+      <label class="form-label"><?= __('answer_options') ?> <span class="text-muted" style="font-weight:400"><?= __('mark_correct_hint') ?></span></label>
       <div id="opts-list-${qi}"></div>
-      <button type="button" class="btn btn-secondary btn-sm" onclick="addOption(${qi})" id="add-opt-btn-${qi}" style="margin-top:8px"><?= __('add_option_btn') ?></button>
+      <button type="button" class="btn btn-secondary btn-sm mt-2" onclick="addOption(${qi})" id="add-opt-btn-${qi}"><?= __('add_option_btn') ?></button>
     </div>
-    <div id="text-hint-${qi}" style="display:none;font-size:.85rem;color:var(--muted);padding:10px;background:#f4f6fb;border-radius:8px">
+    <div id="text-hint-${qi}" style="display:none" class="text-sm text-muted p-4 mt-3" style="background:hsl(var(--muted));border-radius:var(--radius)">
       <?= __('text_hint_comma') ?>
-      <input type="text" name="opt_${qi}[]" class="form-control" style="margin-top:8px" placeholder="<?= __('correct_answer_alt') ?>">
+      <input type="text" name="opt_${qi}[]" class="form-control mt-2" placeholder="<?= __('correct_answer_alt') ?>">
     </div>
   `;
   container.appendChild(div);
@@ -190,11 +183,11 @@ function addOption(qi) {
   const list = document.getElementById(`opts-list-${qi}`);
   const idx = list.children.length;
   const row = document.createElement('div');
-  row.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:6px';
+  row.className = 'flex items-center gap-2 mb-2';
   row.innerHTML = `
-    <input type="checkbox" name="correct_${qi}[]" value="${idx}" style="accent-color:var(--primary);width:18px;height:18px">
+    <input type="checkbox" name="correct_${qi}[]" value="${idx}" style="accent-color:hsl(var(--primary));width:18px;height:18px">
     <input type="text" name="opt_${qi}[]" class="form-control" placeholder="<?= __('option_placeholder') ?>">
-    <button type="button" class="btn btn-danger btn-sm" style="padding:5px 10px" onclick="this.parentElement.remove()">✕</button>
+    <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">✕</button>
   `;
   list.appendChild(row);
 }

@@ -6,7 +6,8 @@
 $stmt = $db->query("SELECT * FROM courses LIMIT 1");
 $course = $stmt->fetch();
 
-$stmt = $db->prepare("SELECT * FROM weeks WHERE course_id = ? ORDER BY number");
+normalize_course_week_numbers($db, (int) $course['id']);
+$stmt = $db->prepare("SELECT * FROM weeks WHERE course_id = ? ORDER BY number, id");
 $stmt->execute([$course['id']]);
 $weeks = $stmt->fetchAll();
 
@@ -15,7 +16,6 @@ $total_grade = 0;
 $total_count = 0;
 
 foreach ($weeks as $week) {
-    // Получаем задания недели
     $stmt = $db->prepare("SELECT * FROM assignments WHERE week_id = ? AND visible = 1 ORDER BY created_at");
     $stmt->execute([$week['id']]);
     $assignments = $stmt->fetchAll();
@@ -37,7 +37,6 @@ foreach ($weeks as $week) {
         }
     }
     
-    // Получаем тесты недели
     $stmt = $db->prepare("SELECT * FROM tests WHERE week_id = ? AND visible = 1 ORDER BY created_at");
     $stmt->execute([$week['id']]);
     $tests = $stmt->fetchAll();
@@ -81,11 +80,11 @@ include 'header.php';
   </div>
 </div>
 
-<div class="stats-grid" style="margin-bottom:24px">
+<div class="stats-grid mb-5">
   <div class="stat-card">
     <div class="stat-icon">📊</div>
     <div class="stat-label"><?= __('average_score') ?></div>
-    <div class="stat-value" style="color:<?= $avg >= 75 ? 'var(--success)' : ($avg >= 50 ? 'var(--accent)' : 'var(--danger)') ?>">
+    <div class="stat-value <?= $avg >= 75 ? 'text-success' : ($avg >= 50 ? 'text-warning' : 'text-destructive') ?>">
       <?= $avg ?>
     </div>
   </div>
@@ -113,10 +112,10 @@ include 'header.php';
   </div>
 </div>
 
-<div class="card" style="margin-bottom:20px">
-  <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-    <span style="font-weight:600"><?= __('total_course_progress') ?></span>
-    <span style="font-weight:800;color:var(--primary)"><?= $pct ?>%</span>
+<div class="card mb-5">
+  <div class="flex justify-between mb-2">
+    <span class="font-semibold"><?= __('total_course_progress') ?></span>
+    <span class="font-extrabold text-primary"><?= $pct ?>%</span>
   </div>
   <div class="progress-wrap">
     <div class="progress-bar" style="width:<?= $pct ?>%"></div>
@@ -142,11 +141,11 @@ include 'header.php';
         <?php foreach ($rows as $row): ?>
         <tr>
           <td>
-            <span style="font-weight:700;color:var(--primary)"><?= $row['week']['number'] ?></span>
+            <span class="font-bold text-primary"><?= $row['week']['number'] ?></span>
           </td>
-          <td style="font-weight:600">
+          <td class="font-semibold">
             <?php if ($row['type'] == 'assignment'): ?>
-              <a href="index.php?route=assignment_detail&aid=<?= $row['item']['id'] ?>" style="color:var(--text);text-decoration:none">
+              <a href="index.php?route=assignment_detail&aid=<?= $row['item']['id'] ?>" style="color:inherit">
                 <?= htmlspecialchars($row['item']['title']) ?>
               </a>
             <?php else: ?>
@@ -181,22 +180,22 @@ include 'header.php';
               <?php endif; ?>
             <?php endif; ?>
           </td>
-          <td style="text-align:center">
+          <td class="text-center">
             <?php if ($row['type'] == 'assignment' && $row['submission'] && $row['submission']['grade'] !== null): ?>
-              <strong style="font-size:1.05rem;color:<?= $row['submission']['grade'] >= 75 ? 'var(--success)' : ($row['submission']['grade'] >= 50 ? '#c47a00' : 'var(--danger)') ?>">
+              <span class="score-display <?= $row['submission']['grade'] >= 75 ? 'score-high' : ($row['submission']['grade'] >= 50 ? 'score-mid' : 'score-low') ?>">
                 <?= $row['submission']['grade'] ?>/100
-              </strong>
+              </span>
             <?php elseif ($row['type'] == 'test' && $row['tsub']): 
                 $pct_t = ($row['tsub']['max_score'] > 0) ? intval($row['tsub']['score'] / $row['tsub']['max_score'] * 100) : 0;
             ?>
-              <strong style="font-size:1.05rem;color:<?= $pct_t >= 75 ? 'var(--success)' : ($pct_t >= 50 ? '#c47a00' : 'var(--danger)') ?>">
+              <span class="score-display <?= $pct_t >= 75 ? 'score-high' : ($pct_t >= 50 ? 'score-mid' : 'score-low') ?>">
                 <?= $row['tsub']['score'] ?>/<?= $row['tsub']['max_score'] ?>
-              </strong>
+              </span>
             <?php else: ?>
-              <span style="color:var(--muted)">—</span>
+              <span class="text-muted">—</span>
             <?php endif; ?>
           </td>
-          <td style="font-size:.82rem;color:var(--muted);max-width:200px">
+          <td class="text-xs text-muted max-w-xs">
             <?php if ($row['type'] == 'assignment' && $row['submission'] && !empty($row['submission']['comment'])): ?>
               <?= htmlspecialchars(mb_substr($row['submission']['comment'], 0, 80)) . (mb_strlen($row['submission']['comment']) > 80 ? '...' : '') ?>
             <?php else: ?>
@@ -207,7 +206,7 @@ include 'header.php';
         <?php endforeach; ?>
         <?php if (empty($rows)): ?>
         <tr>
-          <td colspan="6" style="text-align:center;color:var(--muted);padding:30px"><?= __('no_items') ?></td>
+          <td colspan="6" class="empty-state"><?= __('no_items') ?></td>
         </tr>
         <?php endif; ?>
       </tbody>

@@ -52,6 +52,7 @@ if ($topicId <= 0) {
 $stmt = $db->prepare(
     "SELECT t.*,
             w.id AS week_id,
+            w.course_id AS course_id,
             w.number AS week_number,
             w.title AS week_title,
             u.full_name AS author_name
@@ -67,6 +68,10 @@ if (!$topic) {
     die(__('topic_not_found'));
 }
 
+normalize_course_week_numbers($db, (int) $topic['course_id']);
+$stmt->execute([$topicId]);
+$topic = $stmt->fetch();
+
 $topicUrl = "index.php?route=discussion_topic&topic_id=$topicId";
 if ($from !== '') {
     $topicUrl .= '&from=' . urlencode($from);
@@ -76,7 +81,7 @@ $editTopicUrl = $topicUrl . '&edit=1';
 $canEditTopic = (int) $topic['user_id'] === (int) $user['id'];
 $isEditMode = $canEditTopic && (($_GET['edit'] ?? '0') === '1');
 
-$discussionUrl = "index.php?route=week_discussion&wid=" . (int) $topic['week_id'];
+$discussionUrl = 'index.php?route=week_discussion&wid=' . (int) $topic['week_id'];
 if (in_array($from, ['dashboard', 'materials', 'admin_course'], true)) {
     $discussionUrl .= '&from=' . urlencode($from);
 }
@@ -150,7 +155,7 @@ $stmt = $db->prepare(
      FROM discussion_comments dc
      JOIN users u ON u.id = dc.user_id
      WHERE dc.topic_id = ?
-     ORDER BY datetime(dc.created_at) ASC, dc.id ASC"
+     ORDER BY dc.created_at ASC, dc.id ASC"
 );
 $stmt->execute([$topicId]);
 $comments = $stmt->fetchAll();
@@ -162,7 +167,7 @@ include 'header.php';
 <div class="topbar">
   <div>
     <h1><?= htmlspecialchars($topic['title']) ?></h1>
-    <div class="breadcrumb"><?= __('week') ?> <?= $topic['week_number'] ?> · <?= htmlspecialchars($topic['week_title']) ?></div>
+    <div class="breadcrumb"><?= __('week') ?> <?= $topic['week_number'] ?> · <?= htmlspecialchars(format_week_title($topic['week_title'])) ?></div>
   </div>
   <a href="<?= $discussionUrl ?>" class="btn btn-secondary btn-sm"><?= __('back_to_discussions') ?></a>
 </div>
