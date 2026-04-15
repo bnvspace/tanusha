@@ -44,6 +44,7 @@ if (!$course) {
 normalize_course_week_numbers($db, (int) $course['id']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_csrf_token();
     $action = $_POST['action'] ?? '';
 
     if ($action === 'update_course') {
@@ -171,6 +172,7 @@ include 'header.php';
 <div class="card mb-5">
   <div class="card-title">📋 <?= __('course_info_title') ?></div>
   <form method="POST" enctype="multipart/form-data">
+    <?= csrf_input() ?>
     <input type="hidden" name="action" value="update_course">
     <div class="form-group">
       <label class="form-label"><?= __('course_title_lbl') ?></label>
@@ -244,6 +246,7 @@ include 'header.php';
         <?php endif; ?>
       </a>
       <form method="POST" onsubmit="return confirm('<?= __('confirm_delete_week') ?>')">
+        <?= csrf_input() ?>
         <input type="hidden" name="action" value="delete_week">
         <input type="hidden" name="week_id" value="<?= $week['id'] ?>">
         <button type="submit" class="btn btn-danger btn-sm"><?= __('delete_week_btn') ?></button>
@@ -263,7 +266,11 @@ include 'header.php';
         </div>
         <div class="content-row-actions">
           <a href="index.php?route=admin_edit_material&mid=<?= $material['id'] ?>" class="btn btn-secondary btn-sm">✏️</a>
-          <a href="index.php?route=admin_delete_material&mid=<?= $material['id'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('<?= __('confirm_delete_material') ?>')">🗑</a>
+          <form method="POST" action="index.php?route=admin_delete_material" style="display:inline" onsubmit="return confirm('<?= __('confirm_delete_material') ?>')">
+            <?= csrf_input() ?>
+            <input type="hidden" name="mid" value="<?= $material['id'] ?>">
+            <button type="submit" class="btn btn-danger btn-sm">🗑</button>
+          </form>
         </div>
       </div>
       <?php endforeach; ?>
@@ -283,7 +290,11 @@ include 'header.php';
         </div>
         <div class="content-row-actions">
           <a href="index.php?route=admin_edit_assignment&aid=<?= $assignment['id'] ?>" class="btn btn-secondary btn-sm">✏️</a>
-          <a href="index.php?route=admin_delete_assignment&aid=<?= $assignment['id'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('<?= __('confirm_delete_assignment') ?>')">🗑</a>
+          <form method="POST" action="index.php?route=admin_delete_assignment" style="display:inline" onsubmit="return confirm('<?= __('confirm_delete_assignment') ?>')">
+            <?= csrf_input() ?>
+            <input type="hidden" name="aid" value="<?= $assignment['id'] ?>">
+            <button type="submit" class="btn btn-danger btn-sm">🗑</button>
+          </form>
         </div>
       </div>
       <?php endforeach; ?>
@@ -302,7 +313,11 @@ include 'header.php';
         </div>
         <div class="content-row-actions">
           <a href="index.php?route=admin_edit_test&tid=<?= $test['id'] ?>" class="btn btn-secondary btn-sm">✏️</a>
-          <a href="index.php?route=admin_delete_test&tid=<?= $test['id'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('<?= __('confirm_delete_test') ?>')">🗑</a>
+          <form method="POST" action="index.php?route=admin_delete_test" style="display:inline" onsubmit="return confirm('<?= __('confirm_delete_test') ?>')">
+            <?= csrf_input() ?>
+            <input type="hidden" name="tid" value="<?= $test['id'] ?>">
+            <button type="submit" class="btn btn-danger btn-sm">🗑</button>
+          </form>
         </div>
       </div>
       <?php endforeach; ?>
@@ -319,6 +334,7 @@ include 'header.php';
 <div class="card">
   <div class="card-title">➕ <?= __('add_week_title') ?></div>
   <form method="POST" class="flex gap-4 items-end">
+    <?= csrf_input() ?>
     <input type="hidden" name="action" value="add_week">
     <div class="form-group mb-0 flex-1">
       <label class="form-label"><?= __('week_title_lbl') ?></label>

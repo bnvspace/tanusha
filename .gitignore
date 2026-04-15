@@ -16,5 +16,7 @@ uploads/*
 # Временные файлы и логи
 *.log
 .env
+.runtime/
+.tools/
 .DS_Store
 Thumbs.db

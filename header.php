@@ -2,6 +2,7 @@
 
 $user = get_logged_in_user();
 $route = $_GET['route'] ?? 'landing';
+$lang = current_lang();
 ?>
 <!DOCTYPE html>
 <html lang="ru">
@@ -25,9 +26,9 @@ $route = $_GET['route'] ?? 'landing';
     </div>
     
     <div class="lang-switcher" style="display:flex;gap:12px;padding:8px 20px 20px;font-size:0.75rem;font-weight:600">
-      <a href="index.php?route=set_lang&lang=ru" style="color:<?= $_SESSION['lang'] == 'ru' ? 'var(--primary)' : 'var(--muted)' ?>">RU</a>
-      <a href="index.php?route=set_lang&lang=kk" style="color:<?= $_SESSION['lang'] == 'kk' ? 'var(--primary)' : 'var(--muted)' ?>">KK</a>
-      <a href="index.php?route=set_lang&lang=en" style="color:<?= $_SESSION['lang'] == 'en' ? 'var(--primary)' : 'var(--muted)' ?>">EN</a>
+      <a href="index.php?route=set_lang&lang=ru" style="color:<?= $lang === 'ru' ? 'var(--primary)' : 'var(--muted)' ?>">RU</a>
+      <a href="index.php?route=set_lang&lang=kk" style="color:<?= $lang === 'kk' ? 'var(--primary)' : 'var(--muted)' ?>">KK</a>
+      <a href="index.php?route=set_lang&lang=en" style="color:<?= $lang === 'en' ? 'var(--primary)' : 'var(--muted)' ?>">EN</a>
     </div>
 
     <nav class="sidebar-nav">

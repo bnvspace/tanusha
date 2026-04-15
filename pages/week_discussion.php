@@ -34,6 +34,7 @@ if (in_array($from, ['dashboard', 'materials', 'admin_course'], true)) {
 $topicBaseUrl = 'index.php?route=discussion_topic&from=' . urlencode($backRoute);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_csrf_token();
     $action = $_POST['action'] ?? '';
 
     if ($action === 'update_forum_description' && in_array($user['role'], ['teacher', 'admin'], true)) {
@@ -107,6 +108,7 @@ include 'header.php';
 
   <?php if (in_array($user['role'], ['teacher', 'admin'], true)): ?>
     <form method="POST" style="margin-top:18px">
+      <?= csrf_input() ?>
       <input type="hidden" name="action" value="update_forum_description">
       <div class="form-group" style="margin-bottom:12px">
         <label class="form-label"><?= __('edit_forum_description') ?></label>
@@ -149,6 +151,7 @@ include 'header.php';
 <div class="card">
   <div class="card-title"><?= __('create_topic') ?></div>
   <form method="POST">
+    <?= csrf_input() ?>
     <input type="hidden" name="action" value="create_topic">
     <div class="form-group">
       <label class="form-label"><?= __('topic_title') ?></label>

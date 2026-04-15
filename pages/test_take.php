@@ -1,7 +1,14 @@
 <?php
 // pages/test_take.php
 
-
+function finish_test_attempt_as_expired(PDO $db, int $submissionId, int $maxScore): void {
+    $stmt = $db->prepare(
+        "UPDATE test_submissions
+         SET score = 0, max_score = ?, finished_at = CURRENT_TIMESTAMP
+         WHERE id = ? AND finished_at IS NULL"
+    );
+    $stmt->execute([$maxScore, $submissionId]);
+}
 
 $tid = $_GET['tid'] ?? null;
 if (!$tid) {
@@ -10,12 +17,14 @@ if (!$tid) {
 }
 
 // Получаем тест и вопросы
-$stmt = $db->prepare("SELECT * FROM tests WHERE id = ?");
+$stmt = $db->prepare("SELECT * FROM tests WHERE id = ? AND visible = 1 AND (open_date IS NULL OR open_date <= CURRENT_TIMESTAMP)");
 $stmt->execute([$tid]);
 $test = $stmt->fetch();
 
 if (!$test) {
-    die("Тест не найден.");
+    set_flash(__('test_unavailable'), 'warning');
+    header("Location: index.php?route=tests");
+    exit;
 }
 
 // Проверяем, не пройден ли тест уже
@@ -38,15 +47,59 @@ foreach ($questions as &$q) {
     $stmt_opt->execute([$q['id']]);
     $q['options'] = $stmt_opt->fetchAll();
 }
+unset($q);
+
+$maxScore = count($questions);
+
+$stmt = $db->prepare("SELECT * FROM test_submissions WHERE test_id = ? AND user_id = ? AND finished_at IS NULL ORDER BY id DESC LIMIT 1");
+$stmt->execute([$tid, $user['id']]);
+$attempt = $stmt->fetch();
+
+if (!$attempt) {
+    $stmt = $db->prepare("INSERT INTO test_submissions (test_id, user_id, started_at, max_score) VALUES (?, ?, CURRENT_TIMESTAMP, ?)");
+    $stmt->execute([$tid, $user['id'], $maxScore]);
+
+    $stmt = $db->prepare("SELECT * FROM test_submissions WHERE id = ?");
+    $stmt->execute([(int) $db->lastInsertId()]);
+    $attempt = $stmt->fetch();
+}
+
+$attemptId = (int) $attempt['id'];
+$startedAt = parse_utc_datetime($attempt['started_at'] ?? null);
+$timeLimitMinutes = (int) ($test['time_limit'] ?? 0);
+$expiresAt = ($timeLimitMinutes > 0 && $startedAt !== null)
+    ? $startedAt->modify("+{$timeLimitMinutes} minutes")
+    : null;
+
+if ($expiresAt !== null && utc_now() > $expiresAt) {
+    finish_test_attempt_as_expired($db, $attemptId, $maxScore);
+    set_flash(__('test_time_expired'), 'warning');
+    header("Location: index.php?route=test_result&tid=$tid&sid=$attemptId");
+    exit;
+}
 
 // Обработка отправки
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_csrf_token();
+
+    if ((int) ($_POST['attempt_id'] ?? 0) !== $attemptId) {
+        set_flash(__('test_unavailable'), 'danger');
+        header("Location: index.php?route=tests");
+        exit;
+    }
+
+    if ($expiresAt !== null && utc_now() > $expiresAt) {
+        finish_test_attempt_as_expired($db, $attemptId, $maxScore);
+        set_flash(__('test_time_expired'), 'warning');
+        header("Location: index.php?route=test_result&tid=$tid&sid=$attemptId");
+        exit;
+    }
+
     $db->beginTransaction();
     try {
-        $stmt = $db->prepare("INSERT INTO test_submissions (test_id, user_id, started_at, max_score) VALUES (?, ?, CURRENT_TIMESTAMP, ?)");
-        $stmt->execute([$tid, $user['id'], count($questions)]);
-        $sid = $db->lastInsertId();
-        
+        $stmt = $db->prepare("DELETE FROM test_answers WHERE submission_id = ?");
+        $stmt->execute([$attemptId]);
+
         $score = 0;
         foreach ($questions as $q) {
             $is_correct = false;
@@ -83,20 +136,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($is_correct) $score++;
             
             $stmt_ans = $db->prepare("INSERT INTO test_answers (submission_id, question_id, answer_text, selected_options, is_correct) VALUES (?, ?, ?, ?, ?)");
-            $stmt_ans->execute([$sid, $q['id'], $answer_text, $selected_options, $is_correct ? 1 : 0]);
+            $stmt_ans->execute([$attemptId, $q['id'], $answer_text, $selected_options, $is_correct ? 1 : 0]);
         }
         
-        $stmt_upd = $db->prepare("UPDATE test_submissions SET score = ?, finished_at = CURRENT_TIMESTAMP WHERE id = ?");
-        $stmt_upd->execute([$score, $sid]);
+        $stmt_upd = $db->prepare("UPDATE test_submissions SET score = ?, max_score = ?, finished_at = CURRENT_TIMESTAMP WHERE id = ? AND finished_at IS NULL");
+        $stmt_upd->execute([$score, $maxScore, $attemptId]);
+
+        if ($stmt_upd->rowCount() === 0) {
+            throw new RuntimeException(__('test_unavailable'));
+        }
         
         $db->commit();
-        header("Location: index.php?route=test_result&tid=$tid&sid=$sid");
+        header("Location: index.php?route=test_result&tid=$tid&sid=$attemptId");
         exit;
-    } catch (Exception $e) {
-        $db->rollBack();
+    } catch (Throwable $e) {
+        if ($db->inTransaction()) {
+            $db->rollBack();
+        }
         die(__('test_save_error') . " " . $e->getMessage());
     }
 }
+
+$remainingSeconds = $expiresAt !== null
+    ? max(0, $expiresAt->getTimestamp() - utc_now()->getTimestamp())
+    : null;
 
 $page_title = $test['title'];
 include 'header.php';
@@ -122,6 +185,8 @@ include 'header.php';
 <?php endif; ?>
 
 <form method="POST" id="test-form">
+  <?= csrf_input() ?>
+  <input type="hidden" name="attempt_id" value="<?= $attemptId ?>">
   <?php foreach ($questions as $index => $q): ?>
   <div class="question-block">
     <div class="question-num"><?= __('question_num') ?> <?= $index + 1 ?> <?= __('out_of') ?> <?= count($questions) ?></div>
@@ -160,14 +225,20 @@ include 'header.php';
 
 <?php if ($test['time_limit']): ?>
 <script>
-  let remaining = <?= $test['time_limit'] ?> * 60;
+  let remaining = <?= (int) $remainingSeconds ?>;
   const timerEl = document.getElementById('timer');
   const form = document.getElementById('test-form');
+  const renderTimer = () => {
+    const safeRemaining = Math.max(0, remaining);
+    const m = Math.floor(safeRemaining / 60);
+    const s = safeRemaining % 60;
+    timerEl.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+  };
+
+  renderTimer();
   const iv = setInterval(() => {
     remaining--;
-    const m = Math.floor(remaining / 60);
-    const s = remaining % 60;
-    timerEl.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+    renderTimer();
     if (remaining <= 0) {
       clearInterval(iv);
       form.submit();

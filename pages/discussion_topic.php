@@ -87,6 +87,7 @@ if (in_array($from, ['dashboard', 'materials', 'admin_course'], true)) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_csrf_token();
     $action = $_POST['action'] ?? '';
 
     if ($action === 'update_topic') {
@@ -189,6 +190,7 @@ include 'header.php';
 
   <?php if ($isEditMode): ?>
     <form method="POST" style="margin-top:18px">
+      <?= csrf_input() ?>
       <input type="hidden" name="action" value="update_topic">
       <div class="form-group">
         <label class="form-label"><?= __('topic_title') ?></label>
@@ -243,6 +245,7 @@ include 'header.php';
 <div class="card">
   <div class="card-title"><?= __('new_comment') ?></div>
   <form method="POST" enctype="multipart/form-data">
+    <?= csrf_input() ?>
     <input type="hidden" name="action" value="add_comment">
     <div class="form-group">
       <label class="form-label"><?= __('comment_text_label') ?></label>

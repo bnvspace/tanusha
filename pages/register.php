@@ -2,12 +2,7 @@
 // pages/register.php
 if (is_authenticated()) {
     $user = get_logged_in_user();
-    if (in_array($user['role'], ['teacher', 'admin'])) {
-        header("Location: index.php?route=admin_dashboard");
-    } else {
-        header("Location: index.php?route=dashboard");
-    }
-    exit;
+    redirect_to_route(default_route_for_role($user['role'] ?? null));
 }
 ?>
 <!DOCTYPE html>
@@ -62,6 +57,7 @@ if (is_authenticated()) {
       <?php endif; ?>
 
       <form method="POST" action="index.php?route=register">
+        <?= csrf_input() ?>
         <div class="form-group">
           <label class="form-label"><?= __('full_name') ?></label>
           <input type="text" name="full_name" class="form-control" placeholder="<?= __('full_name_placeholder') ?>" required autofocus>

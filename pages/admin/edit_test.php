@@ -31,6 +31,7 @@ foreach ($questions as &$q) {
 unset($q);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_csrf_token();
     $db->beginTransaction();
     try {
         $week_id = intval($_POST['week_id']);
@@ -106,6 +107,7 @@ include 'header.php';
 
 <div class="card">
   <form method="POST" id="test-form">
+    <?= csrf_input() ?>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div class="form-group">
         <label class="form-label"><?= __('week') ?></label>

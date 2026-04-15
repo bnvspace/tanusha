@@ -18,7 +18,6 @@ $stmt = $db->prepare("SELECT s.*, u.full_name as student_name, a.title as assign
                       JOIN assignments a ON s.assignment_id = a.id 
                       WHERE s.id = ?");
 $stmt->execute([$sid]);
-$stmt->execute([$sid]);
 $submission = $stmt->fetch();
 
 if (!$submission) {
@@ -27,12 +26,13 @@ if (!$submission) {
 
 // Обработка оценки
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_csrf_token();
     $grade = isset($_POST['grade']) ? intval($_POST['grade']) : null;
     $status = $_POST['status'] ?? 'reviewed';
     $comment = trim($_POST['comment'] ?? '');
     
-    $stmt = $db->prepare("UPDATE submissions SET grade = ?, status = ?, comment = ?, reviewed_at = CURRENT_TIMESTAMP WHERE id = ?");
-    $stmt->execute([$grade, $status, $comment, $sid]);
+    $stmt = $db->prepare("UPDATE submissions SET grade = ?, status = ?, comment = ?, reviewed_at = CURRENT_TIMESTAMP, reviewed_by = ? WHERE id = ?");
+    $stmt->execute([$grade, $status, $comment, $user['id'], $sid]);
     
     set_flash(__('grade_saved'), 'success');
     header("Location: index.php?route=admin_review");
@@ -83,6 +83,7 @@ include 'header.php';
   <div class="card">
     <div class="card-title">📊 <?= __('set_grade_title') ?></div>
     <form method="POST">
+      <?= csrf_input() ?>
       <div class="form-group">
         <label class="form-label"><?= __('grade_0_100') ?></label>
         <input type="number" name="grade" class="form-control" min="0" max="100"

@@ -2,13 +2,10 @@
 // pages/landing.php
 if (is_authenticated()) {
     $user = get_logged_in_user();
-    if (in_array($user['role'], ['teacher', 'admin'])) {
-        header("Location: index.php?route=admin_dashboard");
-    } else {
-        header("Location: index.php?route=dashboard");
-    }
-    exit;
+    redirect_to_route(default_route_for_role($user['role'] ?? null));
 }
+
+$lang = current_lang();
 ?>
 <!DOCTYPE html>
 <html lang="ru">
@@ -25,9 +22,9 @@ if (is_authenticated()) {
 <div class="landing-wrapper">
   <!-- Lang switcher for landing -->
   <div style="position:absolute;top:30px;right:40px;display:flex;gap:20px;z-index:100;font-weight:700;font-size:0.9rem">
-    <a href="index.php?route=set_lang&lang=ru" style="color:<?= $_SESSION['lang'] == 'ru' ? 'var(--primary)' : '#fff' ?>;text-decoration:none">RU</a>
-    <a href="index.php?route=set_lang&lang=kk" style="color:<?= $_SESSION['lang'] == 'kk' ? 'var(--primary)' : '#fff' ?>;text-decoration:none">KK</a>
-    <a href="index.php?route=set_lang&lang=en" style="color:<?= $_SESSION['lang'] == 'en' ? 'var(--primary)' : '#fff' ?>;text-decoration:none">EN</a>
+    <a href="index.php?route=set_lang&lang=ru" style="color:<?= $lang === 'ru' ? 'var(--primary)' : '#fff' ?>;text-decoration:none">RU</a>
+    <a href="index.php?route=set_lang&lang=kk" style="color:<?= $lang === 'kk' ? 'var(--primary)' : '#fff' ?>;text-decoration:none">KK</a>
+    <a href="index.php?route=set_lang&lang=en" style="color:<?= $lang === 'en' ? 'var(--primary)' : '#fff' ?>;text-decoration:none">EN</a>
   </div>
 
   <!-- Левая часть — информация о курсе -->
@@ -71,6 +68,7 @@ if (is_authenticated()) {
       <?php endif; ?>
 
       <form method="POST" action="index.php?route=login">
+        <?= csrf_input() ?>
         <div class="form-group">
           <label class="form-label"><?= __('username') ?></label>
           <input type="text" name="username" class="form-control" placeholder="<?= __('username') ?>" required autofocus>

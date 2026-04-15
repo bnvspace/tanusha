@@ -6,6 +6,7 @@
 $user = login_required(['teacher', 'admin']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_csrf_token();
     $db->beginTransaction();
     try {
         $week_id = intval($_POST['week_id']);
@@ -77,6 +78,7 @@ include 'header.php';
 
 <div class="card">
   <form method="POST" id="test-form">
+    <?= csrf_input() ?>
     <div class="grid grid-cols-2 gap-5">
       <div class="form-group">
         <label class="form-label"><?= __('week') ?></label>

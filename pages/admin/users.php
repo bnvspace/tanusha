@@ -23,6 +23,7 @@ include 'header.php';
 <div class="card" style="margin-bottom:20px">
   <div class="card-title">➕ <?= __('new_user') ?></div>
   <form method="POST" action="index.php?route=admin_create_user">
+    <?= csrf_input() ?>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
       <div class="form-group" style="margin-bottom:0">
         <label class="form-label"><?= __('full_name') ?></label>
@@ -81,10 +82,13 @@ include 'header.php';
           </td>
           <td>
             <?php if ($u['id'] != $user['id']): ?>
-            <a href="index.php?route=admin_toggle_user&uid=<?= $u['id'] ?>" class="btn <?= $u['is_active'] ? 'btn-danger' : 'btn-success' ?> btn-sm"
-               onclick="return confirm('<?= __('are_you_sure') ?>')">
-              <?= $u['is_active'] ? __('block_btn') : __('unblock_btn') ?>
-            </a>
+            <form method="POST" action="index.php?route=admin_toggle_user" style="display:inline" onsubmit="return confirm('<?= __('are_you_sure') ?>')">
+              <?= csrf_input() ?>
+              <input type="hidden" name="uid" value="<?= $u['id'] ?>">
+              <button type="submit" class="btn <?= $u['is_active'] ? 'btn-danger' : 'btn-success' ?> btn-sm">
+                <?= $u['is_active'] ? __('block_btn') : __('unblock_btn') ?>
+              </button>
+            </form>
             <?php else: ?>
             <span style="font-size:.8rem;color:var(--muted)"><?= __('its_you') ?></span>
             <?php endif; ?>

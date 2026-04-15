@@ -10,15 +10,17 @@ if (!$aid) {
 }
 
 // Получаем задание
-$stmt = $db->prepare("SELECT a.*, w.number as week_number, w.title as week_title 
+$stmt = $db->prepare("SELECT a.*, w.number as week_number, w.title as week_title
                       FROM assignments a 
                       JOIN weeks w ON a.week_id = w.id 
-                      WHERE a.id = ?");
+                      WHERE a.id = ? AND a.visible = 1 AND (a.open_date IS NULL OR a.open_date <= CURRENT_TIMESTAMP)");
 $stmt->execute([$aid]);
 $assignment = $stmt->fetch();
 
 if (!$assignment) {
-    die("Задание не найдено.");
+    set_flash(__('assignment_unavailable'), 'warning');
+    header("Location: index.php?route=assignments");
+    exit;
 }
 
 // Получаем существующий ответ
@@ -26,10 +28,19 @@ $stmt = $db->prepare("SELECT * FROM submissions WHERE assignment_id = ? AND user
 $stmt->execute([$aid, $user['id']]);
 $submission = $stmt->fetch();
 
-$now = new DateTime('now', new DateTimeZone('UTC'));
+$deadline = parse_utc_datetime($assignment['deadline']);
+$canSubmit = $deadline === null || $deadline >= utc_now();
 
 // Обработка отправки
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_csrf_token();
+
+    if (!$canSubmit) {
+        set_flash(__('assignment_submission_closed'), 'warning');
+        header("Location: index.php?route=assignment_detail&aid=$aid");
+        exit;
+    }
+
     $text_answer = trim($_POST['text_answer'] ?? '');
     $file_path = $submission ? $submission['file_path'] : null;
     
@@ -42,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     if ($submission) {
-        $stmt = $db->prepare("UPDATE submissions SET text_answer = ?, file_path = ?, submitted_at = CURRENT_TIMESTAMP, status = 'pending', grade = NULL, comment = NULL WHERE id = ?");
+        $stmt = $db->prepare("UPDATE submissions SET text_answer = ?, file_path = ?, submitted_at = CURRENT_TIMESTAMP, status = 'pending', grade = NULL, comment = NULL, reviewed_at = NULL, reviewed_by = NULL WHERE id = ?");
         $stmt->execute([$text_answer, $file_path, $submission['id']]);
     } else {
         $stmt = $db->prepare("INSERT INTO submissions (assignment_id, user_id, text_answer, file_path, status) VALUES (?, ?, ?, ?, 'pending')");
@@ -72,9 +83,7 @@ include 'header.php';
     <div class="card" style="margin-bottom:20px">
       <div class="card-title">📋 <?= __('assignment_desc') ?></div>
       <div style="line-height:1.8;white-space:pre-line"><?= htmlspecialchars($assignment['description'] ?? __('no_desc')) ?></div>
-      <?php if ($assignment['deadline']): 
-          $deadline = new DateTime($assignment['deadline']);
-      ?>
+      <?php if ($deadline): ?>
       <div style="margin-top:16px;padding:12px;background:#fff9e6;border-radius:8px;border:1px solid #ffe082;font-size:.88rem">
         ⏰ <strong><?= __('due_date') ?>:</strong> <?= $deadline->format('d.m.Y, H:i') ?>
       </div>
@@ -82,9 +91,11 @@ include 'header.php';
     </div>
 
     <?php if (!$submission || $submission['status'] != 'reviewed'): ?>
+    <?php if ($canSubmit): ?>
     <div class="card">
       <div class="card-title">📤 <?= __('submit_work') ?></div>
       <form method="POST" enctype="multipart/form-data">
+        <?= csrf_input() ?>
         <div class="form-group">
           <label class="form-label"><?= __('text_answer_optional') ?></label>
           <textarea name="text_answer" class="form-control" rows="5"
@@ -98,6 +109,12 @@ include 'header.php';
         <button type="submit" class="btn btn-primary">📤 <?= __('submit_work') ?></button>
       </form>
     </div>
+    <?php else: ?>
+    <div class="card">
+      <div class="card-title">⏰ <?= __('deadline') ?></div>
+      <p style="color:var(--danger);line-height:1.7"><?= __('assignment_submission_closed') ?></p>
+    </div>
+    <?php endif; ?>
     <?php endif; ?>
   </div>
 

@@ -42,15 +42,15 @@ include 'header.php';
 <?php if (!empty($weeks)): ?>
     <?php foreach ($weeks as $week): ?>
     <?php
-        $stmt = $db->prepare("SELECT * FROM materials WHERE week_id = ? AND visible = 1 ORDER BY created_at");
+        $stmt = $db->prepare("SELECT * FROM materials WHERE week_id = ? AND visible = 1 AND (open_date IS NULL OR open_date <= CURRENT_TIMESTAMP) ORDER BY created_at");
         $stmt->execute([$week['id']]);
         $materials = $stmt->fetchAll();
 
-        $stmt = $db->prepare("SELECT * FROM assignments WHERE week_id = ? AND visible = 1 ORDER BY created_at");
+        $stmt = $db->prepare("SELECT * FROM assignments WHERE week_id = ? AND visible = 1 AND (open_date IS NULL OR open_date <= CURRENT_TIMESTAMP) ORDER BY created_at");
         $stmt->execute([$week['id']]);
         $assignments = $stmt->fetchAll();
 
-        $stmt = $db->prepare("SELECT * FROM tests WHERE week_id = ? AND visible = 1 ORDER BY created_at");
+        $stmt = $db->prepare("SELECT * FROM tests WHERE week_id = ? AND visible = 1 AND (open_date IS NULL OR open_date <= CURRENT_TIMESTAMP) ORDER BY created_at");
         $stmt->execute([$week['id']]);
         $tests = $stmt->fetchAll();
 

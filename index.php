@@ -27,7 +27,7 @@ switch ($route) {
         if (in_array($lang, ['ru', 'kk', 'en'])) {
             $_SESSION['lang'] = $lang;
         }
-        $ref = $_SERVER['HTTP_REFERER'] ?? 'index.php';
+        $ref = sanitize_internal_target($_SERVER['HTTP_REFERER'] ?? 'index.php', 'index.php');
         header("Location: $ref");
         exit;
 
@@ -37,14 +37,10 @@ switch ($route) {
         
     case 'login':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            require_csrf_token();
             if (verify_login($_POST['username'], $_POST['password'])) {
                 $user = get_logged_in_user();
-                if (in_array($user['role'], ['teacher', 'admin'])) {
-                    header("Location: index.php?route=admin_dashboard");
-                } else {
-                    header("Location: index.php?route=dashboard");
-                }
-                exit;
+                redirect_to_route(default_route_for_role($user['role'] ?? null));
             } else {
                 set_flash('Неверный логин или пароль.', 'danger');
                 header("Location: index.php?route=landing");
@@ -56,6 +52,7 @@ switch ($route) {
         
     case 'register':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            require_csrf_token();
             $full_name = trim($_POST['full_name'] ?? '');
             $username = trim($_POST['username'] ?? '');
             $email = trim($_POST['email'] ?? '');
@@ -179,11 +176,15 @@ switch ($route) {
     case 'admin_create_user':
         $user = login_required(['admin']);
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            require_csrf_token();
             $full_name = trim($_POST['full_name'] ?? '');
             $username = trim($_POST['username'] ?? '');
             $email = trim($_POST['email'] ?? '');
             $password = $_POST['password'] ?? '';
             $role = $_POST['role'] ?? 'student';
+            if (!in_array($role, ['student', 'teacher', 'admin'], true)) {
+                $role = 'student';
+            }
 
             if ($full_name === '' || $username === '' || $email === '' || $password === '') {
                 set_flash('Заполните все поля формы.', 'warning');
@@ -213,8 +214,10 @@ switch ($route) {
 
     case 'admin_toggle_user':
         $user = login_required(['admin']);
-        $uid = $_GET['uid'] ?? null;
-        if ($uid && $uid != $user['id']) {
+        require_post_request();
+        require_csrf_token();
+        $uid = (int) ($_POST['uid'] ?? 0);
+        if ($uid > 0 && $uid !== (int) $user['id']) {
             $stmt = $db->prepare("SELECT is_active FROM users WHERE id = ?");
             $stmt->execute([$uid]);
             $st = $stmt->fetch();
@@ -225,8 +228,7 @@ switch ($route) {
                 set_flash('Статус пользователя изменен.', 'success');
             }
         }
-        $ref = $_SERVER['HTTP_REFERER'] ?? 'index.php?route=admin_users';
-        header("Location: $ref");
+        header("Location: index.php?route=admin_users");
         exit;
 
     case 'admin_course':
@@ -248,8 +250,10 @@ switch ($route) {
 
     case 'admin_delete_material':
         $user = login_required(['teacher', 'admin']);
-        $mid = $_GET['mid'] ?? null;
-        if ($mid) {
+        require_post_request();
+        require_csrf_token();
+        $mid = (int) ($_POST['mid'] ?? 0);
+        if ($mid > 0) {
             $stmt = $db->prepare("DELETE FROM materials WHERE id = ?");
             $stmt->execute([$mid]);
             set_flash('Материал удален.', 'success');
@@ -271,8 +275,10 @@ switch ($route) {
 
     case 'admin_delete_assignment':
         $user = login_required(['teacher', 'admin']);
-        $aid = $_GET['aid'] ?? null;
-        if ($aid) {
+        require_post_request();
+        require_csrf_token();
+        $aid = (int) ($_POST['aid'] ?? 0);
+        if ($aid > 0) {
             $stmt = $db->prepare("DELETE FROM assignments WHERE id = ?");
             $stmt->execute([$aid]);
             set_flash('Задание удалено.', 'success');
@@ -294,8 +300,10 @@ switch ($route) {
 
     case 'admin_delete_test':
         $user = login_required(['teacher', 'admin']);
-        $tid = $_GET['tid'] ?? null;
-        if ($tid) {
+        require_post_request();
+        require_csrf_token();
+        $tid = (int) ($_POST['tid'] ?? 0);
+        if ($tid > 0) {
             $stmt = $db->prepare("DELETE FROM tests WHERE id = ?");
             $stmt->execute([$tid]);
             set_flash('Тест удален.', 'success');

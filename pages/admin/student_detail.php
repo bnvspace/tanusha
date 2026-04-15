@@ -14,7 +14,6 @@ if (!$uid) {
 // Получаем студента
 $stmt = $db->prepare("SELECT * FROM users WHERE id = ? AND role = 'student'");
 $stmt->execute([$uid]);
-$stmt->execute([$uid]);
 $student = $stmt->fetch();
 
 if (!$student) {
@@ -41,6 +40,7 @@ $test_submissions = $stmt->fetchAll();
 
 // Обработка блокировки
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $user['role'] == 'admin' && isset($_POST['toggle_active'])) {
+    require_csrf_token();
     $new_status = $student['is_active'] ? 0 : 1;
     $stmt = $db->prepare("UPDATE users SET is_active = ? WHERE id = ?");
     $stmt->execute([$new_status, $uid]);
@@ -81,6 +81,7 @@ include 'header.php';
     </div>
     <?php if ($user['role'] == 'admin'): ?>
     <form method="POST" style="margin-top:12px">
+      <?= csrf_input() ?>
       <input type="hidden" name="toggle_active" value="1">
       <button type="submit" class="btn <?= $student['is_active'] ? 'btn-danger' : 'btn-success' ?>" style="width:100%;justify-content:center" onclick="return confirm('<?= __('are_you_sure') ?>')">
         <?= $student['is_active'] ? __('block_btn_icon') : __('unblock_btn_icon') ?>
