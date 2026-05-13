@@ -88,6 +88,14 @@ body {
   padding: 32px 36px;
 }
 
+.mb-3 { margin-bottom: 12px; }
+.mb-4 { margin-bottom: 16px; }
+.mb-5 { margin-bottom: 24px; }
+.mt-2 { margin-top: 8px; }
+.mt-3 { margin-top: 12px; }
+.mt-4 { margin-top: 16px; }
+.mt-5 { margin-top: 24px; }
+
 /* ── Top bar ── */
 .topbar {
   display: flex; align-items: center; justify-content: space-between;
@@ -218,6 +226,15 @@ tr:hover td { background: #f8f9ff; }
 .week-body { padding: 16px 22px; }
 
 /* ── Material / Assignment items ── */
+.section-label {
+  margin-bottom: 10px;
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
 .item-list { display: flex; flex-direction: column; gap: 10px; }
 .item-card {
   display: flex; align-items: center; gap: 14px;
@@ -452,13 +469,58 @@ tr:hover td { background: #f8f9ff; }
   box-shadow: var(--shadow);
 }
 
+.about-course-card {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.course-description {
+  margin-bottom: 2px;
+}
+
+.course-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.course-info-section {
+  min-width: 0;
+}
+
+.course-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.course-section-text {
+  margin: 0;
+  color: var(--text);
+  font-size: .95rem;
+  line-height: 1.65;
+}
+
+.course-learning-section {
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
 .course-objectives-list {
   margin: 0;
-  padding-left: 1.2rem;
+  padding-left: 1.45rem;
+  color: var(--text);
+  font-size: .95rem;
+  line-height: 1.65;
 }
 
 .course-objectives-list li {
-  margin-bottom: 0.35rem;
+  padding-left: 0.25rem;
+  margin-bottom: 0.45rem;
 }
 
 .course-objectives-list li:last-child {
@@ -467,6 +529,7 @@ tr:hover td { background: #f8f9ff; }
 
 @media (max-width: 900px) {
   .forum-layout { grid-template-columns: 1fr; }
+  .course-info-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 600px) {

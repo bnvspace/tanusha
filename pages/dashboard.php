@@ -35,11 +35,11 @@ function render_course_objectives(?string $objectives): void {
     ));
 
     if (count($items) < 2) {
-        echo '<p class="text-sm leading-relaxed whitespace-preline">' . htmlspecialchars($objectives) . '</p>';
+        echo '<p class="course-section-text">' . htmlspecialchars($objectives) . '</p>';
         return;
     }
 
-    echo '<ul class="course-objectives-list text-sm leading-relaxed">';
+    echo '<ul class="course-objectives-list">';
     foreach ($items as $item) {
         echo '<li>' . htmlspecialchars($item) . '</li>';
     }
@@ -103,32 +103,32 @@ include 'header.php';
   </div>
 </div>
 
-<div class="card mb-5">
+<div class="card mb-5 about-course-card">
   <div class="card-title">📋 <?= __('about_course') ?></div>
-  <p class="text-muted leading-relaxed mb-4"><?= htmlspecialchars($course['description'] ?? '') ?></p>
+  <p class="course-section-text course-description"><?= htmlspecialchars($course['description'] ?? '') ?></p>
 
-  <div class="grid grid-cols-2 gap-5 mt-4">
-    <div>
-      <div class="font-bold mb-2 flex items-center gap-2">
+  <div class="course-info-grid">
+    <section class="course-info-section">
+      <div class="course-section-title">
         🎯 <?= __('course_goals') ?>
       </div>
-      <p class="text-sm leading-relaxed"><?= htmlspecialchars($course['goals'] ?? '') ?></p>
-    </div>
-    <div>
-      <div class="font-bold mb-2 flex items-center gap-2">
+      <p class="course-section-text"><?= htmlspecialchars($course['goals'] ?? '') ?></p>
+    </section>
+    <section class="course-info-section">
+      <div class="course-section-title">
         📌 <?= __('course_objectives') ?>
       </div>
       <?php render_course_objectives($course['objectives'] ?? null); ?>
-    </div>
+    </section>
   </div>
 
   <?php if (!empty($course['content_info'])): ?>
-  <div class="separator">
-    <div class="font-bold mb-2 flex items-center gap-2">
+  <section class="course-info-section course-learning-section">
+    <div class="course-section-title">
       📚 <?= __('learning_content') ?>
     </div>
-    <p class="text-sm leading-relaxed"><?= htmlspecialchars($course['content_info']) ?></p>
-  </div>
+    <p class="course-section-text"><?= htmlspecialchars($course['content_info']) ?></p>
+  </section>
   <?php endif; ?>
 </div>
 
