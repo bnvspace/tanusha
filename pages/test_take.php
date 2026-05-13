@@ -43,7 +43,7 @@ $stmt->execute([$tid]);
 $questions = $stmt->fetchAll();
 
 foreach ($questions as &$q) {
-    $stmt_opt = $db->prepare("SELECT * FROM test_options WHERE question_id = ?");
+    $stmt_opt = $db->prepare("SELECT * FROM test_options WHERE question_id = ? AND TRIM(option_text) <> ''");
     $stmt_opt->execute([$q['id']]);
     $q['options'] = $stmt_opt->fetchAll();
 }

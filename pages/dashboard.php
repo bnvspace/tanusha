@@ -23,6 +23,29 @@ $stmt = $db->prepare("SELECT COUNT(DISTINCT test_id) FROM test_submissions WHERE
 $stmt->execute([$user['id']]);
 $doneTests = (int) $stmt->fetchColumn();
 
+function render_course_objectives(?string $objectives): void {
+    $objectives = trim((string) $objectives);
+    if ($objectives === '') {
+        return;
+    }
+
+    $items = array_values(array_filter(
+        array_map('trim', preg_split('/(?:^|\R|\s*)[•]\s*/u', $objectives) ?: []),
+        static fn(string $item): bool => $item !== ''
+    ));
+
+    if (count($items) < 2) {
+        echo '<p class="text-sm leading-relaxed whitespace-preline">' . htmlspecialchars($objectives) . '</p>';
+        return;
+    }
+
+    echo '<ul class="course-objectives-list text-sm leading-relaxed">';
+    foreach ($items as $item) {
+        echo '<li>' . htmlspecialchars($item) . '</li>';
+    }
+    echo '</ul>';
+}
+
 foreach ($weeks as &$week) {
     $stmt = $db->prepare(
         "SELECT COUNT(*) FROM materials
@@ -95,7 +118,7 @@ include 'header.php';
       <div class="font-bold mb-2 flex items-center gap-2">
         📌 <?= __('course_objectives') ?>
       </div>
-      <p class="text-sm leading-relaxed whitespace-preline"><?= htmlspecialchars($course['objectives'] ?? '') ?></p>
+      <?php render_course_objectives($course['objectives'] ?? null); ?>
     </div>
   </div>
 

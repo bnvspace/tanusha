@@ -34,6 +34,39 @@ function upload_course_pdf(array $file, string $prefix): array {
     return [$fileName, null];
 }
 
+function upload_course_document(array $file, string $prefix): array {
+    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+        return [null, null];
+    }
+
+    if (($file['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
+        return [null, __('document_upload_failed')];
+    }
+
+    if (($file['size'] ?? 0) > 25 * 1024 * 1024) {
+        return [null, __('document_upload_too_large')];
+    }
+
+    $extension = strtolower(pathinfo($file['name'] ?? '', PATHINFO_EXTENSION));
+    $allowedExtensions = ['pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp'];
+    if (!in_array($extension, $allowedExtensions, true) || !is_uploaded_file($file['tmp_name'])) {
+        return [null, __('document_upload_invalid')];
+    }
+
+    $mimeType = mime_content_type($file['tmp_name']);
+    $allowedMimeTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+    if (!in_array($mimeType, $allowedMimeTypes, true)) {
+        return [null, __('document_upload_invalid')];
+    }
+
+    $fileName = $prefix . '_' . date('YmdHis') . '_' . bin2hex(random_bytes(4)) . '.' . $extension;
+    if (!move_uploaded_file($file['tmp_name'], UPLOAD_DIR . $fileName)) {
+        return [null, __('document_save_failed')];
+    }
+
+    return [$fileName, null];
+}
+
 $stmt = $db->query("SELECT * FROM courses LIMIT 1");
 $course = $stmt->fetch();
 
@@ -50,6 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'update_course') {
         $glossaryPdfPath = $course['glossary_pdf_path'] ?? null;
         $syllabusPdfPath = $course['syllabus_pdf_path'] ?? null;
+        $assessmentCriteriaPath = $course['assessment_criteria_path'] ?? null;
 
         if (isset($_FILES['glossary_pdf'])) {
             [$uploadedGlossaryPdf, $glossaryPdfError] = upload_course_pdf($_FILES['glossary_pdf'], 'glossary');
@@ -75,9 +109,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
+        if (isset($_FILES['assessment_criteria'])) {
+            [$uploadedAssessmentCriteria, $assessmentCriteriaError] = upload_course_document($_FILES['assessment_criteria'], 'assessment_criteria');
+            if ($assessmentCriteriaError !== null) {
+                set_flash($assessmentCriteriaError, 'danger');
+                header("Location: index.php?route=admin_course");
+                exit;
+            }
+            if ($uploadedAssessmentCriteria !== null) {
+                $assessmentCriteriaPath = $uploadedAssessmentCriteria;
+            }
+        }
+
         $stmt = $db->prepare(
             "UPDATE courses
-             SET title = ?, description = ?, goals = ?, objectives = ?, content_info = ?, glossary_pdf_path = ?, syllabus_pdf_path = ?
+             SET title = ?, description = ?, goals = ?, objectives = ?, content_info = ?, glossary_pdf_path = ?, syllabus_pdf_path = ?, assessment_criteria_path = ?
              WHERE id = ?"
         );
         $stmt->execute([
@@ -88,6 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_POST['content_info'],
             $glossaryPdfPath,
             $syllabusPdfPath,
+            $assessmentCriteriaPath,
             $course['id'],
         ]);
         set_flash(__('course_updated'), 'success');
@@ -196,7 +243,7 @@ include 'header.php';
         <textarea name="content_info" class="form-control" rows="3"><?= htmlspecialchars($course['content_info'] ?? '') ?></textarea>
       </div>
     </div>
-    <div class="grid grid-cols-2 gap-5 mt-4">
+    <div class="course-documents-upload-grid mt-4">
       <div class="form-group">
         <label class="form-label"><?= __('glossary_pdf') ?></label>
         <input type="file" name="glossary_pdf" class="form-control" accept=".pdf,application/pdf">
@@ -211,6 +258,14 @@ include 'header.php';
         <div class="form-hint"><?= __('pdf_upload_hint') ?></div>
         <?php if (!empty($course['syllabus_pdf_path'])): ?>
           <div class="form-hint"><?= __('current_file') ?> <a href="<?= htmlspecialchars(build_upload_url($course['syllabus_pdf_path'])) ?>" target="_blank" rel="noopener"><?= __('open_syllabus') ?></a></div>
+        <?php endif; ?>
+      </div>
+      <div class="form-group">
+        <label class="form-label"><?= __('assessment_criteria_file') ?></label>
+        <input type="file" name="assessment_criteria" class="form-control" accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,application/pdf,image/png,image/jpeg,image/gif,image/webp">
+        <div class="form-hint"><?= __('document_upload_hint') ?></div>
+        <?php if (!empty($course['assessment_criteria_path'])): ?>
+          <div class="form-hint"><?= __('current_file') ?> <a href="<?= htmlspecialchars(build_upload_url($course['assessment_criteria_path'])) ?>" target="_blank" rel="noopener"><?= __('open_assessment_criteria') ?></a></div>
         <?php endif; ?>
       </div>
     </div>

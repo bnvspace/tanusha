@@ -72,7 +72,7 @@ include 'header.php';
 <div class="topbar">
   <div>
     <h1>📝 <?= htmlspecialchars($assignment['title']) ?></h1>
-    <div class="breadcrumb"><?= __('week') ?> <?= $assignment['week_number'] ?> · <?= htmlspecialchars($assignment['week_title']) ?></div>
+    <div class="breadcrumb"><?= __('week') ?> <?= $assignment['week_number'] ?> · <?= htmlspecialchars(format_week_title($assignment['week_title'])) ?></div>
   </div>
   <a href="index.php?route=assignments" class="btn btn-secondary btn-sm"><?= __('back_to_assignments') ?></a>
 </div>

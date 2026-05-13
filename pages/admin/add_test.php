@@ -36,6 +36,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $corrects = $_POST['correct_' . $orig_qi] ?? [];
             
             foreach ($opts as $j => $opt_text) {
+                $opt_text = trim((string) $opt_text);
+                if ($opt_text === '') {
+                    continue;
+                }
+
                 if ($type == 'text') {
                     $is_correct = true;
                 } else {

@@ -241,6 +241,14 @@ function get_course_documents(?array $course): array {
         ];
     }
 
+    $assessmentCriteriaUrl = build_upload_url($course['assessment_criteria_path'] ?? null);
+    if ($assessmentCriteriaUrl !== null) {
+        $documents[] = [
+            'label' => __('open_assessment_criteria'),
+            'url' => $assessmentCriteriaUrl,
+        ];
+    }
+
     return $documents;
 }
 ?>

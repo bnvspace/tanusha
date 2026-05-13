@@ -24,7 +24,8 @@ function bootstrap_create_schema(PDO $db): void {
             objectives TEXT,
             content_info TEXT,
             glossary_pdf_path VARCHAR(512) NULL,
-            syllabus_pdf_path VARCHAR(512) NULL
+            syllabus_pdf_path VARCHAR(512) NULL,
+            assessment_criteria_path VARCHAR(512) NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         SQL,
         <<<SQL
@@ -200,6 +201,7 @@ function bootstrap_create_schema(PDO $db): void {
 function bootstrap_migrate_existing_schema(PDO $db): void {
     bootstrap_add_column_if_missing($db, 'courses', 'glossary_pdf_path', 'VARCHAR(512) NULL');
     bootstrap_add_column_if_missing($db, 'courses', 'syllabus_pdf_path', 'VARCHAR(512) NULL');
+    bootstrap_add_column_if_missing($db, 'courses', 'assessment_criteria_path', 'VARCHAR(512) NULL');
     bootstrap_add_column_if_missing($db, 'weeks', 'discussion_description', 'TEXT');
 }
 

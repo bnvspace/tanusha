@@ -24,7 +24,7 @@ $stmt->execute([$tid]);
 $questions = $stmt->fetchAll();
 
 foreach ($questions as &$q) {
-    $stmt_o = $db->prepare("SELECT * FROM test_options WHERE question_id = ? ORDER BY id");
+    $stmt_o = $db->prepare("SELECT * FROM test_options WHERE question_id = ? AND TRIM(option_text) <> '' ORDER BY id");
     $stmt_o->execute([$q['id']]);
     $q['options'] = $stmt_o->fetchAll();
 }
@@ -65,6 +65,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $corrects = $_POST['correct_' . $orig_qi] ?? [];
             
             foreach ($opts as $j => $opt_text) {
+                $opt_text = trim((string) $opt_text);
+                if ($opt_text === '') {
+                    continue;
+                }
+
                 if ($type == 'text') {
                     $is_correct = true;
                 } else {
